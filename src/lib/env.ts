@@ -15,9 +15,18 @@ export type ServerEnv = z.infer<typeof serverEnvSchema>;
 
 let cached: ServerEnv | null = null;
 
+/** Hosting dashboards often store unset variables as "", which would bypass Zod defaults. */
+function nonEmptyEnv(): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(process.env).filter(
+      (entry): entry is [string, string] => typeof entry[1] === "string" && entry[1].trim() !== "",
+    ),
+  );
+}
+
 export function getServerEnv(): ServerEnv {
   if (cached) return cached;
-  const parsed = serverEnvSchema.safeParse(process.env);
+  const parsed = serverEnvSchema.safeParse(nonEmptyEnv());
   if (!parsed.success) {
     throw new Error(parsed.error.issues.map((i) => i.message).join("; "));
   }
@@ -32,5 +41,5 @@ export function getScraperSettings() {
     SCRAPER_TIMEOUT_MS: true,
     SCRAPER_DOMAIN_DELAY_MS: true,
   });
-  return schema.parse(process.env);
+  return schema.parse(nonEmptyEnv());
 }
