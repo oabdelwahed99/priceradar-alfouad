@@ -381,6 +381,24 @@ export interface ContentOverviewDTO extends PaginatedDTO<ContentOverviewRowDTO> 
   truncated: boolean;
 }
 
+/** AI-generated SEO copy informed by the Content & SEO analysis. */
+export interface SeoContentDraftDTO {
+  title: string;
+  metaDescription: string;
+  h1: string;
+  description: string;
+  headings: string[];
+  bulletPoints: string[];
+  faq: { question: string; answer: string }[];
+  /** Competitor-mentioned facts the model could not verify from our page. */
+  unverifiedFacts: string[];
+}
+
+export interface SeoContentDraftResultDTO {
+  prompt: string;
+  draft: SeoContentDraftDTO;
+}
+
 export interface PaginatedDTO<T> {
   items: T[];
   total: number;

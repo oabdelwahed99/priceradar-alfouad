@@ -173,6 +173,73 @@ describe("extractPrice chain", () => {
     expect(extractPrice(c)).toMatchObject({ price: 20, availability: "out_of_stock" });
   });
 
+  it("uses the displayed sale price when structured data only has the compare-at price", () => {
+    const c = ctx(
+      `<section id="shopify-section-template--1__main">
+        <div class="product-card"><div class="f-price f-price--on-sale">
+          <span class="f-price-item f-price-item--sale">EGP 90</span>
+          <s>EGP 120</s>
+        </div></div>
+        <div class="product__block product__block--price">
+          <div id="price-template--1__main">
+            <div class="f-price f-price--on-sale">
+              <span class="visually-hidden">Regular price</span>
+              <span class="f-price-item f-price-item--regular">EGP 490</span>
+              <div class="f-price__sale">
+                <span class="f-price-item f-price-item--sale">EGP 490</span>
+                <span class="f-price-item f-price-item--regular"><s>EGP 700</s></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>`,
+      jsonLd({
+        "@type": "Product",
+        name: "Capixy Hair Intense Spray – 125ml",
+        offers: { "@type": "Offer", price: 700, priceCurrency: "EGP", availability: "https://schema.org/InStock" },
+      }) + `<meta property="og:price:amount" content="700"><meta property="og:price:currency" content="EGP">`,
+    );
+    expect(extractPrice(c)).toMatchObject({
+      price: 490,
+      originalPrice: 700,
+      currency: "EGP",
+      availability: "in_stock",
+      strategy: "json-ld",
+    });
+  });
+
+  it("keeps a correct structured sale price and records the struck-through compare-at price", () => {
+    const c = ctx(
+      `<div id="price-template--1__main" class="price price--on-sale">
+        <s class="price-item price-item--regular">EGP 700</s>
+        <span class="price-item price-item--sale">EGP 490</span>
+      </div>`,
+      jsonLd({
+        "@type": "Product",
+        name: "Capixy Hair Intense Spray",
+        offers: { "@type": "Offer", price: "490.00", priceCurrency: "EGP" },
+      }),
+    );
+    expect(extractPrice(c)).toMatchObject({ price: 490, originalPrice: 700, currency: "EGP", strategy: "json-ld" });
+  });
+
+  it("does not replace the structured price with a sale from another product", () => {
+    const c = ctx(
+      `<section id="shopify-section-template--1__main">
+        <div id="price-template--1__main"><span class="price-item">EGP 700</span></div>
+      </section>
+      <div class="product-card"><div class="f-price f-price--on-sale">
+        <span class="f-price-item f-price-item--sale">EGP 90</span><s>EGP 700</s>
+      </div></div>`,
+      jsonLd({
+        "@type": "Product",
+        name: "Full price item",
+        offers: { "@type": "Offer", price: 700, priceCurrency: "EGP" },
+      }),
+    );
+    expect(extractPrice(c)).toMatchObject({ price: 700, originalPrice: null, currency: "EGP" });
+  });
+
   it("supports custom retailer strategies ahead of the defaults", () => {
     const custom: PriceStrategy = {
       name: "retailer-x",

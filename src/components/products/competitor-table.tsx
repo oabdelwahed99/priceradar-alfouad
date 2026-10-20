@@ -34,6 +34,7 @@ function StatusLine({ row }: { row: CompetitorComparisonRowDTO }) {
       </span>
     );
   }
+  if (row.availability === "out_of_stock" && row.price === null) return null;
   return (
     <span className="flex items-center gap-1 text-xs text-emerald-700 dark:text-emerald-400">
       <CheckCircle2 className="size-3.5" /> Price found: {formatMoney(row.price, row.currency)}

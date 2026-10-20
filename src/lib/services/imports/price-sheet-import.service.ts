@@ -25,6 +25,8 @@ export interface PriceSheetRow {
   name: string;
   brand?: string;
   size?: string;
+  /** Overrides the sheet category when this row belongs to a different one. */
+  category?: string;
   cells: Partial<Record<string, PriceSheetCell>>;
 }
 
@@ -51,6 +53,7 @@ export interface PlannedRow {
   name: string;
   brand: string | null;
   size: string | null;
+  category: string | null;
   sources: PlannedSource[];
   skipped: { storeName: string; reason: SheetSkipReason; price: number | null }[];
 }
@@ -71,6 +74,7 @@ export function planPriceSheet(sheet: PriceSheet): { currency: string; rows: Pla
       name: row.name.trim(),
       brand: row.brand?.trim() || null,
       size: row.size?.trim() || null,
+      category: row.category?.trim() || sheet.category?.trim() || null,
       sources: [],
       skipped: [],
     };
@@ -159,7 +163,7 @@ export async function importPriceSheet(
         name: row.name,
         brand: row.brand,
         size: row.size,
-        category: sheet.category ?? null,
+        category: row.category,
         currency: plan.currency,
       });
       product = doc.toObject();
@@ -178,6 +182,7 @@ export async function importPriceSheet(
         retailers.set(planned.domain, retailer);
       }
       const hasPrice = planned.price !== null;
+      const markedOutOfStock = !hasPrice && planned.availability === "out_of_stock";
       const source = await ProductSource.create({
         workspaceId,
         productId: product._id,
@@ -185,25 +190,25 @@ export async function importPriceSheet(
         url: planned.url,
         isOwnStore: planned.isOwnStore,
         sortOrder: planned.sortOrder,
-        scrapingStatus: hasPrice ? "success" : "pending",
-        lastScrapedAt: hasPrice ? importedAt : null,
+        scrapingStatus: hasPrice || markedOutOfStock ? "success" : "pending",
+        lastScrapedAt: hasPrice || markedOutOfStock ? importedAt : null,
       });
       sourcesAdded++;
 
-      if (hasPrice) {
+      if (hasPrice || markedOutOfStock) {
         await recordObservation({
           workspaceId,
           productId: product._id,
           retailerId: retailer._id,
           sourceId: source._id,
-          price: planned.price!,
+          price: hasPrice ? planned.price! : 0,
           originalPrice: null,
           currency: plan.currency,
           availability: planned.availability,
           scrapedAt: importedAt,
           origin: "manual",
         });
-        pricesRecorded++;
+        if (hasPrice) pricesRecorded++;
       } else {
         pendingStores.push(planned.storeName);
       }

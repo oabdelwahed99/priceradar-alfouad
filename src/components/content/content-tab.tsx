@@ -5,17 +5,25 @@ import { CaptureContentButton } from "./capture-content-button";
 import { ContentPages } from "./content-pages";
 import { ContentSummary } from "./content-summary";
 import { AttributeCoverage, KeywordGap } from "./keyword-gap";
+import { SeoDraftDialog } from "./seo-draft-dialog";
 
 export function ContentTab({
   analysis,
   productId,
+  product,
   isDemo,
 }: {
   analysis: ProductContentAnalysisDTO;
   productId: string;
+  product: { name: string; brand: string | null; size: string | null };
   isDemo: boolean;
 }) {
   const sourceCount = analysis.pages.length;
+  const draftDisabledReason = isDemo
+    ? "SEO drafts are not available for demo products."
+    : analysis.status === "NO_CONTENT"
+      ? "Capture page content before generating an SEO draft."
+      : undefined;
 
   if (analysis.status === "NO_CONTENT") {
     return (
@@ -42,7 +50,17 @@ export function ContentTab({
             write your own copy informed by these gaps.
           </p>
         </div>
-        {isDemo ? null : <CaptureContentButton productId={productId} sourceCount={sourceCount} />}
+        {isDemo ? null : (
+          <div className="flex flex-wrap items-center gap-2">
+            <SeoDraftDialog
+              productId={productId}
+              product={product}
+              analysis={analysis}
+              disabledReason={draftDisabledReason}
+            />
+            <CaptureContentButton productId={productId} sourceCount={sourceCount} />
+          </div>
+        )}
       </div>
 
       {!analysis.ownPageCaptured ? (

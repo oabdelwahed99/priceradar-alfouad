@@ -20,7 +20,7 @@ import {
   getObservationsSince,
   recordObservation,
 } from "../prices/price-observation.service";
-import { competitorDifferencePercentage } from "../pricing/pricing-analysis.service";
+import { competitorDifferencePercentage, isValidPrice } from "../pricing/pricing-analysis.service";
 import { buildPricingSummary, EXCLUSION_MESSAGES, type PricingSummary, type SourcePriceInput } from "../pricing/pricing-summary";
 import { getProductDoc, getProductSources } from "../products/product.service";
 import { scrapeContentMany, scrapeMany } from "../scraping/scraper.service";
@@ -387,7 +387,7 @@ function buildComparisonRows({ sources, latest, summary }: ProductState): Compet
     const id = String(source._id);
     const obs = latest.get(id);
     const ok = source.scrapingStatus === "success" && obs;
-    const price = ok ? obs.price : null;
+    const price = ok && isValidPrice(obs.price) ? obs.price : null;
     const exclusion = exclusions.get(id);
     const currency = ok ? (obs.currency ?? null) : null;
     return {
@@ -455,6 +455,7 @@ function buildHistorySeries(
     ]),
   );
   for (const obs of observations) {
+    if (!isValidPrice(obs.price)) continue;
     series.get(String(obs.sourceId))?.points.push({ scrapedAt: toIso(obs.scrapedAt)!, price: obs.price });
   }
   return [...series.values()];

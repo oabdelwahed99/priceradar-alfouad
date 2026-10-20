@@ -1,9 +1,9 @@
 import type { PriceSheet } from "@/lib/services/imports/price-sheet-import.service";
 
 /**
- * Hair care price sheet (EGP), transcribed from the team's comparison spreadsheet.
+ * Price sheet (EGP), transcribed from the team's comparison spreadsheet.
  * A cell with a price but `url: null` had its link cut off in the export: paste the full link
- * and re-run `pnpm import:sheet` to add it.
+ * and re-run `pnpm import:sheet` to add it. A row `category` overrides the sheet category.
  */
 export const hairCarePriceSheet: PriceSheet = {
   currency: "EGP",
@@ -24,7 +24,9 @@ export const hairCarePriceSheet: PriceSheet = {
       size: "125ml",
       cells: {
         alfouad: { url: "https://alfouadpharmacies.com/en/products/capixy-hair-intense-spray-125ml", price: 700 },
-        noon: { url: null, price: 415 },
+        noon: {
+          url: "https://www.noon.com/egypt-en/capixy-hair-fertilizer-intense-tonic-spray-white-125ml/ZB5CBB5B73370A25B80F9Z/p/?o=d598b1a85b3b157d",
+        },
         bloom: { url: "https://www.bloompharmacy.com/products/capixy-hair-fertilizer-intense-tonic-spray-125ml", price: 560 },
         tay: { url: "https://taypharmacies.com/product/897575/capixy-intense-tonic-spray-125ml-2", price: 490 },
         seif: { url: null, price: 490 },
@@ -37,7 +39,7 @@ export const hairCarePriceSheet: PriceSheet = {
       size: "300gm",
       cells: {
         alfouad: { url: "https://alfouadpharmacies.com/en/products/clary-hair-leave-in-cream-300gm", price: 340 },
-        noon: { url: "https://www.noon.com/egypt-en/leave-in-cream-300-gm/Z106C5FA40605EC7D50E8Z/p/", price: 238 },
+        noon: { url: "https://www.noon.com/egypt-en/leave-in-cream-300-gm/Z106C5FA40605EC7D50E8Z/p/", price: 255 },
         bloom: { url: "https://www.bloompharmacy.com/products/clary-leave-in-cream-300gm?variant=48641346306356", price: 340 },
         tay: { url: "https://taypharmacies.com/product/901217/clary-leave-in-cream-300gm", price: 340 },
         seif: { url: "https://seif-online.com/en/clary-hair-fall-control-leave-in-cream-300-gm", price: 340 },
@@ -95,7 +97,7 @@ export const hairCarePriceSheet: PriceSheet = {
         alfouad: { url: "https://alfouadpharmacies.com/en/products/vichy-dercos-r-e-g-e-n-booster-hair-serum-90ml", price: 2700 },
         noon: {
           url: "https://www.noon.com/egypt-en/dercos-aminexil-clinical-regen-booster-serum-designed-for-hairloss-90ml/N70249904V/p/?o=b6e74a2d26798afe",
-          price: 2455,
+          price: 2403,
         },
         bloom: { url: "https://www.bloompharmacy.com/products/vichy-dercos-aminexil-clinical-r-e-g-e-n-booster-90ml", price: 2700 },
         tay: { url: "https://taypharmacies.com/product/1294764/vichy-dercos-aminexil-clinical-r-e-g-e-n-booster-90ml", price: 2700 },
@@ -112,7 +114,7 @@ export const hairCarePriceSheet: PriceSheet = {
         alfouad: { url: "https://alfouadpharmacies.com/en/products/loreal-elvive-extraord-hair-oil-100ml", price: 550 },
         noon: {
           url: "https://www.noon.com/egypt-en/elvive-extraordinary-sublime-hair-oil-serum-clear-100ml/N11266173A/p/?o=b633bf2047387fdb",
-          price: 468,
+          price: 415,
         },
         bloom: {
           url: "https://www.bloompharmacy.com/products/loreal-elvive-extraordinary-oil-for-dry-hair?variant=45454084178228",
@@ -130,7 +132,7 @@ export const hairCarePriceSheet: PriceSheet = {
         alfouad: { url: "https://alfouadpharmacies.com/en/products/vichy-dercos-densi-solutions-hair-spray-100ml", price: 2380 },
         noon: {
           url: "https://www.noon.com/egypt-en/dercos-densi-solutions-hair-thickening-treatment-for-weak-and-thinning-hair-100ml/N13707591A/p/?o=ce35966de7a0768b",
-          price: 2380,
+          price: 1871,
         },
         bloom: { url: "https://www.bloompharmacy.com/products/vichy-densi-solutions-hair-mass-recreating-concentrate-100ml", price: 2094 },
         tay: { url: "https://taypharmacies.com/product/216738/vichy-dercos-spray-densi-thinningweak-hair", price: 2380 },
@@ -145,7 +147,7 @@ export const hairCarePriceSheet: PriceSheet = {
       size: "30ml",
       cells: {
         alfouad: { url: "https://alfouadpharmacies.com/en/products/clary-booster-shot-30ml", price: 500 },
-        noon: { url: "https://www.noon.com/egypt-en/clary-booster-shot/ZCF8120AC9A4C28109FC0Z/p/?o=zcf8120ac9a4c28109fc0z-1", price: 350 },
+        noon: { url: "https://www.noon.com/egypt-en/clary-booster-shot/ZCF8120AC9A4C28109FC0Z/p/?o=zcf8120ac9a4c28109fc0z-1", price: 375 },
         bloom: { url: "https://www.bloompharmacy.com/products/clary-hair-fall-control-booster-shot-30ml", price: 500 },
         tay: { url: "https://taypharmacies.com/product/888798/clary-booster-shot-intensive-repair-30ml", price: 500 },
         seif: { url: "https://seif-online.com/ar/clary-hair-fall-control-booster-shot-30-ml", price: 500 },
@@ -159,7 +161,7 @@ export const hairCarePriceSheet: PriceSheet = {
       size: "300ml",
       cells: {
         alfouad: { url: "https://alfouadpharmacies.com/en/products/loreal-prof-absolut-repair-shampoo-300ml", price: 1100 },
-        noon: { url: "https://www.noon.com/egypt-en/absolut-repair-shampoo-300ml/N51035077A/p/?o=f0af27d6b4e2c1cf", price: 710 },
+        noon: { url: "https://www.noon.com/egypt-en/absolut-repair-shampoo-300ml/N51035077A/p/?o=f0af27d6b4e2c1cf", price: 784 },
         bloom: {
           url: "https://www.bloompharmacy.com/products/l-oreal-professional-absolut-repair-quinoa-protein-shampoo-300ml",
           price: 895,
@@ -176,7 +178,7 @@ export const hairCarePriceSheet: PriceSheet = {
         alfouad: { url: "https://alfouadpharmacies.com/en/products/loreal-prof-absolut-repair-conditioner-200ml", price: 1370 },
         noon: {
           url: "https://www.noon.com/egypt-en/seri-expert-absolut-repair-gold-conditioner-gold-200ml/N31748050A/p/?o=dff21a9125dc443c",
-          price: 945,
+          price: 999.4,
         },
         bloom: {
           url: "https://www.bloompharmacy.com/products/l-oreal-professional-absolut-repair-gold-quinoa-protein-conditioner-200ml",
@@ -186,6 +188,70 @@ export const hairCarePriceSheet: PriceSheet = {
         seif: { url: "https://seif-online.com/ar/loreal-serie-absolut-repair-cond-200ml", price: 1350 },
         delmar: { url: "https://www.delmar-attalla.com/products/loreal-absolut-repair-cond-200-ml-imp/111375", price: 1250 },
         amazon: { url: null, price: 945 },
+      },
+    },
+    {
+      name: "Dermaelle Glycolic Acid Toner - 350ml",
+      brand: "Dermaelle",
+      size: "350ml",
+      category: "Skin care",
+      cells: {
+        alfouad: {
+          url: "https://alfouadpharmacies.com/en/products/dermaelle-glycolic-acid-toner-350-ml",
+          price: 250,
+        },
+        noon: {
+          url: "https://www.noon.com/egypt-ar/dermaelle-gentle-exfoliating-radiance-glycolic-acid-toner-350ml/ZCF90116585B514D7D897Z/p/",
+          price: 250,
+        },
+        tay: { url: "https://taypharmacies.com/product/1262137/dermaelle-glycolic-acid-toner-350ml", price: 440 },
+        amazon: {
+          url: "https://www.amazon.eg/-/en/Dermaelle-Gentle-Exfoliating-Radiance-Glycolic/dp/B0FV2XKRF2",
+          price: 249,
+        },
+      },
+    },
+    {
+      name: "Dermaelle Hyaluwhite Sensitive Area Cream 60ml",
+      brand: "Dermaelle",
+      size: "60ml",
+      category: "Skin care",
+      cells: {
+        alfouad: { url: "https://alfouadpharmacies.com/en/products/dermaelle-hyaluwhite-sensitive-area-cream-60ml" },
+        noon: {
+          url: "https://www.noon.com/egypt-en/dermaelle-hyalu-white-sensitive-area-cream-60ml/ZB83E97E5DD4CE1453E26Z/p/",
+          outOfStock: true,
+        },
+        tay: { url: "https://taypharmacies.com/product/958694/dermaelle-hyalu-white-sensitive-area-cream-60ml" },
+        amazon: { url: "https://www.amazon.eg/-/en/Dermaelle-Hyalu-White-Sensitive-Cream/dp/B0DJZ979QC" },
+      },
+    },
+    {
+      name: "Dermaelle Skin Booster Serum 30ml",
+      brand: "Dermaelle",
+      size: "30ml",
+      category: "Skin care",
+      cells: {
+        alfouad: { url: "https://alfouadpharmacies.com/en/products/dermaelle-advanc-skin-booster-serum-30-ml" },
+        noon: {
+          url: "https://www.noon.com/egypt-ar/dermaelle-advanced-skinbooster-microneedling-serum-30ml/Z57963152627092705BD6Z/p/",
+          outOfStock: true,
+        },
+        tay: { url: "https://taypharmacies.com/product/1262135/dermaelle-advanced-skin-booster-serum-30ml" },
+        delmar: { url: "https://www.delmar-attalla.com/products/dermaelle-skin-booster-advanced-serum-30-ml/145972" },
+        amazon: {
+          url: "https://www.amazon.eg/%D8%B3%D9%8A%D8%B1%D9%88%D9%85-%D8%AF%D9%8A%D8%B1%D9%85%D8%A7%D9%8A%D9%84-%D8%A7%D8%AF%D9%81%D8%A7%D9%86%D8%B3%D8%AF-%D8%A8%D8%A7%D9%84%D8%A5%D8%A8%D8%B1-%D8%A7%D9%84%D8%AF%D9%82%D9%8A%D9%82%D8%A9/dp/B0FV2WLN7B",
+        },
+      },
+    },
+    {
+      name: "Mood Flower Bliss (Splash+Hand+Shower+Milk)",
+      brand: "Mood",
+      category: "Body care",
+      cells: {
+        alfouad: { url: "https://alfouadpharmacies.com/en/products/mood-set-flower-bliss-splash-hand-shower-milk" },
+        noon: { url: "https://www.noon.com/egypt-en/all-over-flower-bliss-set/Z7F98A545E2FE0906CBA3Z/p/", outOfStock: true },
+        amazon: { url: "https://www.amazon.eg/-/en/Mood-All-Over-Flower-Bliss-Women/dp/B0G24NHMDC" },
       },
     },
   ],

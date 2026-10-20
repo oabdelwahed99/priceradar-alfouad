@@ -74,10 +74,10 @@ describe("planPriceSheet", () => {
 describe("hair care price sheet data", () => {
   it("is valid and only skips the cells whose links were cut off", () => {
     const { rows } = planPriceSheet(hairCarePriceSheet);
-    expect(rows).toHaveLength(10);
+    expect(rows).toHaveLength(14);
     expect(rows.every((r) => r.sources[0]?.isOwnStore)).toBe(true);
     const skipped = rows.flatMap((r) => r.skipped.map((s) => `${r.name} @ ${s.storeName}`));
-    expect(skipped).toHaveLength(6);
+    expect(skipped).toHaveLength(5);
     expect(rows.flatMap((r) => r.skipped).every((s) => s.reason === "MISSING_URL")).toBe(true);
   });
 });

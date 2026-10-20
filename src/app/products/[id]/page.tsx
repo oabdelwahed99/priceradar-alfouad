@@ -122,7 +122,12 @@ export default async function ProductDetailPage(props: PageProps<"/products/[id]
         </TabsContent>
 
         <TabsContent value="content">
-          <ContentTab analysis={content} productId={id} isDemo={Boolean(product.isDemo)} />
+          <ContentTab
+            analysis={content}
+            productId={id}
+            product={{ name: product.name, brand: product.brand ?? null, size: product.size ?? null }}
+            isDemo={Boolean(product.isDemo)}
+          />
         </TabsContent>
       </Tabs>
     </>

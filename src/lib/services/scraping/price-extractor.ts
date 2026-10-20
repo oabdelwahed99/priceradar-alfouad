@@ -13,8 +13,14 @@ import {
 
 /** Class/id fragments that mark a non-current price (was/compare-at/strikethrough). */
 const ORIGINAL_PRICE_HINT = /(old|was|compare|strike|regular|original|before|list|rrp|msrp|crossed)/i;
-/** Containers whose prices belong to other products. */
-const FOREIGN_CONTAINER = /(related|recommend|upsell|cross-?sell|similar|carousel|recently|also-?bought|you-?may)/i;
+/**
+ * Containers whose prices belong to other products.
+ * `carousel` must be its own class token: product galleries use names like `product--vertical-carousel`.
+ */
+const FOREIGN_CONTAINER =
+  /(related|recommend|upsell|cross-?sell|similar|recently|also-?bought|you-?may|(?:^|\s)carousel(?:\s|$)|products?-carousel)/i;
+/** Drawers, cards and overlays that repeat a price outside the main product buy box. */
+const AUXILIARY_PRICE = /(product-card|card-wrapper|card-product|quick-view|quick-add|compare-drawer|compare-modal|predictive-search|search-modal|menu-drawer)/i;
 
 const CURRENT_PRICE_SELECTORS = [
   ".sale-price",
@@ -82,12 +88,20 @@ function classAndId($el: Cheerio<AnyNode>): string {
   return `${$el.attr("class") ?? ""} ${$el.attr("id") ?? ""}`;
 }
 
+function elementHint(node: AnyNode | undefined): string {
+  const el = node as unknown as { tagName?: string; name?: string; attribs?: Record<string, string> } | undefined;
+  if (!el) return "";
+  const tag = (el.tagName ?? el.name ?? "").toLowerCase();
+  return `${tag} ${el.attribs?.class ?? ""} ${el.attribs?.id ?? ""}`;
+}
+
 function isInsideForeignContainer($el: Cheerio<AnyNode>): boolean {
-  return $el.parents().toArray().some((p) => {
-    const node = p as unknown as { attribs?: Record<string, string> };
-    const hint = `${node.attribs?.class ?? ""} ${node.attribs?.id ?? ""}`;
-    return FOREIGN_CONTAINER.test(hint);
-  });
+  return $el.parents().toArray().some((p) => FOREIGN_CONTAINER.test(elementHint(p)));
+}
+
+function isAuxiliaryPrice($el: Cheerio<AnyNode>): boolean {
+  if (AUXILIARY_PRICE.test(`${elementHint($el.get(0))} ${classAndId($el)}`)) return true;
+  return $el.parents().toArray().some((p) => AUXILIARY_PRICE.test(elementHint(p)));
 }
 
 function isOriginalPriceElement($: CheerioAPI, $el: Cheerio<AnyNode>): boolean {
@@ -333,6 +347,111 @@ export const visibleTextStrategy: PriceStrategy = {
   },
 };
 
+interface DisplayedSale {
+  price: number;
+  currency: string | null;
+  compareAt: number | null;
+  /** True when the theme marks this as the sale price, not only an `<ins>` wrapper. */
+  explicitSale: boolean;
+}
+
+const SALE_ITEM_SELECTOR = '[class*="price-item--sale"], ins';
+
+/** Main buy-box price only. Cards, quick view and compare drawers repeat other prices. */
+const MAIN_PRICE_SCOPES = [
+  '[id^="price-"][id*="__main"]',
+  'section[id*="__main"] .product__block--price',
+  ".product__info-wrapper [id^='price-']",
+  ".product__block--price",
+  ".entry-summary .price",
+  ".summary .price",
+  ".product-info-price",
+  ".productView-price",
+];
+
+function sameAmount(a: number, b: number): boolean {
+  return Math.abs(a - b) < 0.02;
+}
+
+function readWidgetSale($: CheerioAPI, $widget: Cheerio<AnyNode>): DisplayedSale | null {
+  for (const el of $widget.find(SALE_ITEM_SELECTOR).toArray().slice(0, 8)) {
+    const $el = $(el);
+    if ($el.closest("del, s, strike").length > 0) continue;
+    if (ORIGINAL_PRICE_HINT.test(classAndId($el)) || isAuxiliaryPrice($el)) continue;
+    const text = $el.text().replace(/\s+/g, " ").trim();
+    if (!text || text.length > 60) continue;
+    const parsed = parsePrice(text);
+    if (!parsed) continue;
+
+    let compareAt: number | null = null;
+    for (const struck of $widget.find("del, s, strike").toArray().slice(0, 6)) {
+      const struckText = $(struck).text().replace(/\s+/g, " ").trim();
+      if (!struckText || struckText.length > 40) continue;
+      const compare = parsePrice(struckText);
+      if (compare && compare.amount > parsed.amount && compare.amount < parsed.amount * 5) {
+        compareAt = compare.amount;
+        break;
+      }
+    }
+    const explicitSale = /price-item--sale/.test(classAndId($el)) || /on-sale/.test(classAndId($widget));
+    return { price: parsed.amount, currency: parsed.currency, compareAt, explicitSale };
+  }
+  return null;
+}
+
+/**
+ * Selling price shown in the main product price block. SEO JSON-LD and Open Graph on Shopify
+ * often publish the compare-at price while the theme shows a lower sale price.
+ */
+function readMainDisplayedSale($: CheerioAPI): DisplayedSale | null {
+  const seen = new Set<AnyNode>();
+  for (const selector of MAIN_PRICE_SCOPES) {
+    for (const el of $(selector).toArray().slice(0, 6)) {
+      if (seen.has(el)) continue;
+      seen.add(el);
+      const $scope = $(el);
+      if (isInsideForeignContainer($scope) || isAuxiliaryPrice($scope)) continue;
+
+      const widgets = $scope.is('[class*="--on-sale"], [class*="on-sale"]')
+        ? [$scope]
+        : $scope.find('[class*="--on-sale"]').toArray().slice(0, 4).map((node) => $(node));
+      for (const $widget of widgets) {
+        const sale = readWidgetSale($, $widget);
+        if (sale) return sale;
+      }
+      const direct = readWidgetSale($, $scope);
+      if (direct) return direct;
+    }
+  }
+  return null;
+}
+
+function reconcileDisplayedSale(candidate: PriceCandidate, $: CheerioAPI): PriceCandidate {
+  const displayed = readMainDisplayedSale($);
+  if (!displayed || !(displayed.price > 0)) return candidate;
+
+  const compareMatches = displayed.compareAt !== null && sameAmount(displayed.compareAt, candidate.price);
+  const saleMatches = sameAmount(displayed.price, candidate.price);
+
+  if (displayed.price < candidate.price && (compareMatches || (displayed.compareAt === null && displayed.explicitSale))) {
+    const original = displayed.compareAt ?? candidate.price;
+    return {
+      ...candidate,
+      price: displayed.price,
+      currency: candidate.currency ?? displayed.currency,
+      originalPrice: original > displayed.price ? original : candidate.originalPrice,
+    };
+  }
+
+  if (saleMatches && displayed.compareAt !== null && displayed.compareAt > candidate.price) {
+    if (candidate.originalPrice === null || displayed.compareAt > candidate.originalPrice) {
+      return { ...candidate, originalPrice: displayed.compareAt };
+    }
+  }
+
+  return candidate;
+}
+
 /** Default extraction order. Retailer adapters can prepend their own strategies. */
 export const DEFAULT_PRICE_STRATEGIES: PriceStrategy[] = [
   jsonLdStrategy,
@@ -360,10 +479,11 @@ export function extractPrice(
     }
     if (!candidate || !(candidate.price > 0)) continue;
 
+    const reconciled = reconcileDisplayedSale(candidate, ctx.$);
     return {
-      ...candidate,
-      currency: candidate.currency ?? detectPageCurrency(ctx.$),
-      availability: candidate.availability !== "unknown" ? candidate.availability : detectAvailabilityFromPage(ctx.$),
+      ...reconciled,
+      currency: reconciled.currency ?? detectPageCurrency(ctx.$),
+      availability: reconciled.availability !== "unknown" ? reconciled.availability : detectAvailabilityFromPage(ctx.$),
     };
   }
   return null;

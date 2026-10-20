@@ -193,6 +193,12 @@ describe("buildPricingSummary with scrape outcomes", () => {
     expect(selection.excluded[0]).toMatchObject({ reason: "OUT_OF_STOCK" });
   });
 
+  it("treats an out-of-stock competitor with no usable price as out of stock", () => {
+    const selection = selectMarketPrices([own, comp("a", { price: 35 }), comp("b", { price: 0, availability: "out_of_stock" })]);
+    expect(selection.included.map((s) => s.sourceId)).toEqual(["a"]);
+    expect(selection.excluded[0]).toMatchObject({ reason: "OUT_OF_STOCK" });
+  });
+
   it("excludes competitors quoting a different currency and assumes the reference currency when missing", () => {
     const selection = selectMarketPrices([own, comp("eur", { currency: "EUR" }), comp("unknown", { currency: null })]);
     expect(selection.included.map((s) => s.sourceId)).toEqual(["unknown"]);

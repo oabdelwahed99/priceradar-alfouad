@@ -58,9 +58,9 @@ export function selectMarketPrices(
   const excluded: MarketSelection["excluded"] = [];
   for (const c of competitors) {
     if (!c.success || c.price === null) excluded.push({ source: c, reason: "FAILED" });
+    else if (!includeOutOfStock && c.availability === "out_of_stock") excluded.push({ source: c, reason: "OUT_OF_STOCK" });
     else if (!isValidPrice(c.price)) excluded.push({ source: c, reason: "INVALID_PRICE" });
     else if (currency && c.currency && c.currency !== currency) excluded.push({ source: c, reason: "CURRENCY_MISMATCH" });
-    else if (!includeOutOfStock && c.availability === "out_of_stock") excluded.push({ source: c, reason: "OUT_OF_STOCK" });
     else included.push(c);
   }
   return { currency, own, included, excluded };

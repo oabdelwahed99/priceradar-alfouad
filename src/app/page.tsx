@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Bell, FileSearch, Grid3x3, Radar, Scale } from "lucide-react";
+import { ArrowRight, Bell, FileSearch, Grid3x3, PackageX, Radar, Scale } from "lucide-react";
 import { SiteHeader } from "@/components/marketing/site-header";
 import { PositionBadge } from "@/components/pricing/position-badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -7,8 +7,8 @@ import { getSession } from "@/lib/auth/session";
 
 export const metadata = {
   title: "Price Radar — Al Fo2ad",
-  description:
-    "Compare Al Fo2ad cosmetics prices with competitor stores and see where each product sits in the market.",
+    description:
+    "Compare Al Fo2ad cosmetics prices with competitor stores, track out-of-stock products, and see which competitor products are still absent from your catalog.",
 };
 
 const FEATURES = [
@@ -48,7 +48,7 @@ const STEPS = [
   {
     step: "03",
     title: "See the gap",
-    body: "The dashboard shows where your price sits, what changed, and which pages need stronger copy.",
+    body: "The dashboard shows where your price sits, what is out of stock on your store and on competitor stores, and which of their products are still absent from your catalog.",
   },
 ] as const;
 
@@ -74,7 +74,8 @@ export default async function HomePage() {
             </h1>
             <p className="max-w-xl text-base leading-relaxed text-muted-foreground">
               Price Radar compares Al Fo2ad product pages with competitor stores. It records each price, shows the gap
-              to the market median, and flags the copy competitors use that your page does not.
+              to the market median, tracks what is out of stock on your store and on theirs, and flags products they
+              sell that are still absent from your catalog.
             </p>
             <div className="flex flex-wrap items-center gap-3">
               <Link href={enterHref} className={buttonVariants({ size: "lg", className: "h-10 px-4" })}>
@@ -146,17 +147,50 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <section id="how-it-works" className="mx-auto w-full max-w-6xl px-6 py-16 md:px-10">
-          <h2 className="text-2xl font-semibold tracking-tight">How a comparison runs</h2>
-          <ol className="mt-8 grid gap-8 md:grid-cols-3">
-            {STEPS.map(({ step, title, body }) => (
-              <li key={step}>
-                <p className="font-mono text-xs text-muted-foreground">{step}</p>
-                <h3 className="mt-2 font-medium">{title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{body}</p>
-              </li>
-            ))}
-          </ol>
+        <section className="border-t">
+          <div className="mx-auto grid w-full max-w-6xl items-center gap-10 px-6 py-12 md:px-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]">
+            <div>
+              <PackageX className="size-4 text-foreground" />
+              <h2 className="mt-3 text-2xl font-semibold tracking-tight">Stock and missed margin</h2>
+              <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">
+                Out-of-stock products are tracked on the Al Fo2ad store and on every competitor store, so a missing
+                unit is visible wherever it happens. When a competitor is selling a product that is absent from your
+                catalog, that listing is margin still open to capture.
+              </p>
+            </div>
+            <div>
+              <ul className="divide-y rounded-2xl bg-card ring-1 ring-foreground/10">
+                <li className="px-5 py-4">
+                  <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Your store and theirs</p>
+                  <p className="mt-1 font-medium">Argan oil shampoo</p>
+                  <p className="mt-1 text-sm text-muted-foreground">Out of stock at Delmar. In stock on Al Fo2ad.</p>
+                </li>
+                <li className="px-5 py-4">
+                  <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Margin still open</p>
+                  <p className="mt-1 font-medium">Collagen hair mask</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Selling at a competitor store. Absent from the Al Fo2ad catalog.
+                  </p>
+                </li>
+              </ul>
+              <p className="mt-3 text-xs text-muted-foreground">Illustration of how stock and assortment gaps are read.</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="how-it-works" className="border-t">
+          <div className="mx-auto w-full max-w-6xl px-6 py-16 md:px-10">
+            <h2 className="text-2xl font-semibold tracking-tight">How a comparison runs</h2>
+            <ol className="mt-8 grid gap-8 md:grid-cols-3">
+              {STEPS.map(({ step, title, body }) => (
+                <li key={step}>
+                  <p className="font-mono text-xs text-muted-foreground">{step}</p>
+                  <h3 className="mt-2 font-medium">{title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{body}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
         </section>
 
         <section className="mt-auto border-t">
