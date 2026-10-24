@@ -3,6 +3,8 @@ import { PRICE_POSITIONS } from "@/types";
 
 export const priceMatrixQuerySchema = z.object({
   q: z.string().trim().max(200).optional(),
+  brand: z.string().trim().max(120).optional(),
+  category: z.string().trim().max(120).optional(),
   position: z.enum(PRICE_POSITIONS).optional(),
   /** "1" includes demo products, which are hidden by default. */
   demo: z.enum(["1"]).optional(),

@@ -74,7 +74,7 @@ export function CompetitorTable({
               <TableCell className="max-w-72">
                 <div className="flex flex-col gap-0.5">
                   <span className="font-medium">
-                    {row.isOwnStore ? "My Store" : row.retailerName}
+                    {row.isOwnStore ? (row.isBrandStore ? "Official store" : "My Store") : row.retailerName}
                     {row.isOwnStore ? <span className="ml-1.5 text-xs text-muted-foreground">({row.retailerName})</span> : null}
                   </span>
                   <StatusLine row={row} />

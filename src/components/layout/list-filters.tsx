@@ -19,14 +19,25 @@ export interface ListFilterSelect {
   ariaLabel: string;
 }
 
-/** Debounced search box plus one select, both kept in the URL; changing either resets pagination. */
-export function ListFilters({ q, select, searchPlaceholder = "Search name or brand…" }: { q: string; select: ListFilterSelect; searchPlaceholder?: string }) {
+/** Debounced search box plus selects, all kept in the URL; changing any resets pagination. */
+export function ListFilters({
+  q,
+  select,
+  selects,
+  searchPlaceholder = "Search name or brand…",
+}: {
+  q: string;
+  /** Prefer `selects` when more than one filter is needed. */
+  select?: ListFilterSelect;
+  selects?: ListFilterSelect[];
+  searchPlaceholder?: string;
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [pending, startTransition] = useTransition();
   const [search, setSearch] = useState(q);
-  const items = [{ value: ALL, label: select.allLabel }, ...select.options];
+  const filterSelects = selects ?? (select ? [select] : []);
 
   function update(next: Record<string, string | null>) {
     const params = new URLSearchParams(searchParams.toString());
@@ -48,7 +59,7 @@ export function ListFilters({ q, select, searchPlaceholder = "Search name or bra
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, q]);
 
-  const hasFilters = Boolean(q || select.value || search);
+  const hasFilters = Boolean(q || search || filterSelects.some((s) => s.value));
 
   return (
     <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -63,28 +74,37 @@ export function ListFilters({ q, select, searchPlaceholder = "Search name or bra
           className="pl-8"
         />
       </div>
-      <Select
-        items={items}
-        value={select.value ?? ALL}
-        onValueChange={(value) => update({ [select.param]: value && value !== ALL ? String(value) : null })}
-      >
-        <SelectTrigger className="w-full sm:w-52" aria-label={select.ariaLabel}>
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {items.map((item) => (
-            <SelectItem key={item.value} value={item.value}>
-              {item.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      {filterSelects.map((filter) => {
+        const items = [{ value: ALL, label: filter.allLabel }, ...filter.options];
+        return (
+          <Select
+            key={filter.param}
+            items={items}
+            value={filter.value ?? ALL}
+            onValueChange={(value) => update({ [filter.param]: value && value !== ALL ? String(value) : null })}
+          >
+            <SelectTrigger className="w-full sm:w-52" aria-label={filter.ariaLabel}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {items.map((item) => (
+                <SelectItem key={item.value} value={item.value}>
+                  {item.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        );
+      })}
       {hasFilters ? (
         <Button
           variant="ghost"
           onClick={() => {
             setSearch("");
-            update({ q: null, [select.param]: null });
+            update({
+              q: null,
+              ...Object.fromEntries(filterSelects.map((s) => [s.param, null])),
+            });
           }}
         >
           <X /> Clear

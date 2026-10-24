@@ -17,9 +17,13 @@ function cellTitle(cell: PriceMatrixCellDTO, storeName: string): string {
   return lines.join("\n");
 }
 
-function Difference({ value }: { value: number | null }) {
+function Difference({ value, vsOfficial }: { value: number | null; vsOfficial?: boolean }) {
   if (value === null) return null;
-  if (value === 0) return <span className="text-xs text-muted-foreground">Same as you</span>;
+  if (value === 0) {
+    return (
+      <span className="text-xs text-muted-foreground">{vsOfficial ? "Same as official" : "Same as you"}</span>
+    );
+  }
   return (
     <span
       className={cn(
@@ -33,7 +37,17 @@ function Difference({ value }: { value: number | null }) {
   );
 }
 
-function PriceCell({ cell, store, rowCurrency }: { cell: PriceMatrixCellDTO | undefined; store: PriceMatrixColumnDTO; rowCurrency: string | null }) {
+function PriceCell({
+  cell,
+  store,
+  rowCurrency,
+  vsOfficial,
+}: {
+  cell: PriceMatrixCellDTO | undefined;
+  store: PriceMatrixColumnDTO;
+  rowCurrency: string | null;
+  vsOfficial?: boolean;
+}) {
   if (!cell) {
     return (
       <span className="block px-2 py-1 text-muted-foreground/60" title={`Not tracked at ${store.name}`}>
@@ -77,7 +91,7 @@ function PriceCell({ cell, store, rowCurrency }: { cell: PriceMatrixCellDTO | un
         {store.isOwnStore ? (
           cell.isLowest ? <span className="text-xs text-emerald-700 dark:text-emerald-400">Lowest</span> : null
         ) : (
-          <Difference value={cell.differencePercentage} />
+          <Difference value={cell.differencePercentage} vsOfficial={vsOfficial} />
         )}
       </>
     );
@@ -100,6 +114,7 @@ function PriceCell({ cell, store, rowCurrency }: { cell: PriceMatrixCellDTO | un
 }
 
 export function PriceMatrixTable({ columns, rows }: { columns: PriceMatrixColumnDTO[]; rows: PriceMatrixRowDTO[] }) {
+  const vsOfficial = columns.some((c) => c.isOwnStore && c.isBrandStore);
   return (
     <Table>
       <TableHeader>
@@ -109,7 +124,11 @@ export function PriceMatrixTable({ columns, rows }: { columns: PriceMatrixColumn
             <TableHead key={c.retailerId} className={cn("text-right", c.isOwnStore && "bg-muted/60")} title={c.domain}>
               <span className="block">{c.name}</span>
               <span className="block text-xs font-normal text-muted-foreground">
-                {c.isOwnStore ? "Your price" : `${c.productCount} product${c.productCount === 1 ? "" : "s"}`}
+                {c.isOwnStore
+                  ? c.isBrandStore || vsOfficial
+                    ? "Official price"
+                    : "Your price"
+                  : `${c.productCount} product${c.productCount === 1 ? "" : "s"}`}
               </span>
             </TableHead>
           ))}
@@ -133,7 +152,7 @@ export function PriceMatrixTable({ columns, rows }: { columns: PriceMatrixColumn
             </TableCell>
             {columns.map((c) => (
               <TableCell key={c.retailerId} className={cn("p-1", c.isOwnStore && "bg-muted/40")}>
-                <PriceCell cell={row.cells[c.retailerId]} store={c} rowCurrency={row.currency} />
+                <PriceCell cell={row.cells[c.retailerId]} store={c} rowCurrency={row.currency} vsOfficial={vsOfficial} />
               </TableCell>
             ))}
             <TableCell>

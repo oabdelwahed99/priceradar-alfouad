@@ -6,6 +6,8 @@ const retailerSchema = new Schema(
     name: { type: String, required: true, trim: true, maxlength: 120 },
     domain: { type: String, required: true, lowercase: true, trim: true, maxlength: 253 },
     isOwnStore: { type: Boolean, default: false },
+    /** Official brand shop used as the reference price for brand products. */
+    isBrandStore: { type: Boolean, default: false },
     isDemo: { type: Boolean, default: false },
   },
   { timestamps: true },

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { ACCOUNT_ID } from "@/lib/auth/constants";
+import { ACCOUNT_ID, ADMIN_ACCOUNT_ID } from "@/lib/auth/constants";
 import { createSessionToken, passwordMatches, safeRedirectPath, verifySessionToken } from "@/lib/auth/token";
 
 const NOW = 1_700_000_000_000;
@@ -14,8 +14,15 @@ describe("session tokens", () => {
 
   it("accepts a token it just signed and rejects tampering and expiry", async () => {
     process.env.AUTH_SECRET = "test-secret";
-    const token = await createSessionToken(NOW);
-    expect(await verifySessionToken(token, NOW)).toEqual({ accountId: ACCOUNT_ID });
+    const token = await createSessionToken(ACCOUNT_ID, NOW);
+    expect(await verifySessionToken(token, NOW)).toEqual({ accountId: ACCOUNT_ID, name: "Dermaelle", role: "member" });
+
+    const adminToken = await createSessionToken(ADMIN_ACCOUNT_ID, NOW);
+    expect(await verifySessionToken(adminToken, NOW)).toEqual({
+      accountId: ADMIN_ACCOUNT_ID,
+      name: "Admin",
+      role: "admin",
+    });
 
     const [accountId, expiresAt, signature] = token.split(".");
     expect(await verifySessionToken(`${accountId}.${expiresAt}.${signature.slice(0, -1)}0`, NOW)).toBeNull();
@@ -25,8 +32,13 @@ describe("session tokens", () => {
 
   it("rejects tokens when the secret is missing", async () => {
     delete process.env.AUTH_SECRET;
-    await expect(createSessionToken(NOW)).rejects.toThrow(/AUTH_SECRET/);
-    expect(await verifySessionToken("alfo2ad.1.aa", NOW)).toBeNull();
+    await expect(createSessionToken(ACCOUNT_ID, NOW)).rejects.toThrow(/AUTH_SECRET/);
+    expect(await verifySessionToken("eslam_dermaelle.1.aa", NOW)).toBeNull();
+  });
+
+  it("rejects an unknown account", async () => {
+    process.env.AUTH_SECRET = "test-secret";
+    await expect(createSessionToken("someone-else", NOW)).rejects.toThrow(/Unknown account/);
   });
 });
 

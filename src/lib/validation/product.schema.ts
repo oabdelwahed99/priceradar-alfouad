@@ -106,6 +106,7 @@ export type ProductSortField = (typeof PRODUCT_SORT_FIELDS)[number];
 
 export const listProductsQuerySchema = z.object({
   q: z.string().trim().max(200).optional(),
+  brand: z.string().trim().max(120).optional(),
   position: z.enum(PRICE_POSITIONS).optional(),
   sort: z.enum(PRODUCT_SORT_FIELDS).default("lastCheckedAt"),
   order: z.enum(["asc", "desc"]).default("desc"),

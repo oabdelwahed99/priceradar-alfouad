@@ -395,6 +395,7 @@ function buildComparisonRows({ sources, latest, summary }: ProductState): Compet
       retailerName: retailer.name,
       url: source.url,
       isOwnStore: Boolean(source.isOwnStore),
+      isBrandStore: Boolean(retailer.isBrandStore),
       price,
       currency: currency ?? summary.selection.currency,
       differencePercentage:

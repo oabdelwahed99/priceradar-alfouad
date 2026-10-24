@@ -27,7 +27,8 @@ export default async function SignInPage({
             <CardHeader>
               <CardTitle>Sign in</CardTitle>
               <CardDescription>
-                {ACCOUNT_NAME} workspace. Use account ID <span className="font-mono text-foreground">{ACCOUNT_ID}</span>.
+                {ACCOUNT_NAME} workspace. Sign in as <span className="font-mono text-foreground">{ACCOUNT_ID}</span> or{" "}
+                <span className="font-mono text-foreground">admin</span>.
               </CardDescription>
             </CardHeader>
             <CardContent>

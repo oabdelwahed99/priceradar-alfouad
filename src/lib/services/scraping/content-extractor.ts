@@ -1,5 +1,6 @@
 import type { Cheerio, CheerioAPI } from "cheerio";
 import type { AnyNode } from "domhandler";
+import { extractReviews } from "./review-extractor";
 import { parseFaqQuestions } from "./structured-data";
 import type { ExtractionContext, PageContent } from "./types";
 import { normalizeWhitespace } from "./utils";
@@ -116,7 +117,8 @@ function microdataRating($: CheerioAPI): PageContent["rating"] {
 }
 
 /** Page copy and SEO metadata. Pure over the parsed page, like the price extractors. */
-export function extractPageContent({ $, structuredData }: ExtractionContext): PageContent {
+export function extractPageContent(ctx: ExtractionContext): PageContent {
+  const { $, structuredData } = ctx;
   const meta = (key: string) =>
     normalizeWhitespace($(`meta[name="${key}"]`).attr("content") ?? $(`meta[property="${key}"]`).attr("content"));
 
@@ -146,5 +148,6 @@ export function extractPageContent({ $, structuredData }: ExtractionContext): Pa
     rating: structuredData.map((p) => p.rating).find(Boolean) ?? microdataRating($),
     images: { total: images.length, withAlt },
     language: lang ? lang.toLowerCase().slice(0, 10) : null,
+    reviews: extractReviews(ctx),
   };
 }

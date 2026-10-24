@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { ACCOUNT_ID, SESSION_COOKIE } from "@/lib/auth/constants";
+import { findAccount, SESSION_COOKIE } from "@/lib/auth/constants";
 import { sessionCookieOptions } from "@/lib/auth/session";
 import { createSessionToken, passwordMatches, safeRedirectPath } from "@/lib/auth/token";
 
@@ -13,19 +13,18 @@ export async function signIn(_prev: SignInState, formData: FormData): Promise<Si
     .trim()
     .toLowerCase();
   const password = String(formData.get("password") ?? "");
-  const expectedPassword = process.env.AUTH_PASSWORD ?? "";
-
-  if (!expectedPassword || !process.env.AUTH_SECRET) {
+  if (!process.env.AUTH_SECRET) {
     return { error: "Sign-in is not configured." };
   }
 
-  const idOk = accountId === ACCOUNT_ID;
+  const account = findAccount(accountId);
+  const expectedPassword = account ? (process.env[account.passwordEnv] ?? "") : (process.env.AUTH_PASSWORD ?? "");
   const passwordOk = await passwordMatches(password, expectedPassword);
-  if (!idOk || !passwordOk) {
+  if (!account || !passwordOk) {
     return { error: "Account ID or password is incorrect." };
   }
 
-  const token = await createSessionToken();
+  const token = await createSessionToken(account.id);
   const jar = await cookies();
   jar.set(SESSION_COOKIE, token, sessionCookieOptions());
   redirect(safeRedirectPath(typeof formData.get("next") === "string" ? String(formData.get("next")) : null));

@@ -25,7 +25,7 @@ pnpm seed                      # optional: load demo data
 pnpm dev                       # http://localhost:3000
 ```
 
-Open the site, then sign in with account ID `alfo2ad` and the `AUTH_PASSWORD` from your env file. The landing page is public. Dashboard, products, and the API require that session.
+Open the site, then sign in with account ID `eslam_dermaelle` and the `AUTH_PASSWORD` from your env file, or with account ID `admin` and `ADMIN_PASSWORD`. The landing page is public. Dashboard, products, and the API require that session. Only the admin account can capture content or refresh prices.
 
 ### Environment variables
 
@@ -35,7 +35,8 @@ Open the site, then sign in with account ID `alfo2ad` and the `AUTH_PASSWORD` fr
 | `MONGODB_DB` | no | Database name when the URI has none (default `price_radar`). |
 | `NEXT_PUBLIC_APP_URL` | no | Public base URL, e.g. `http://localhost:3000`. |
 | `DEFAULT_WORKSPACE_ID` | no | Workspace product data is stored under (default `default`). |
-| `AUTH_PASSWORD` | yes, to sign in | Password for account ID `alfo2ad`. |
+| `AUTH_PASSWORD` | yes, to sign in | Password for member account ID `eslam_dermaelle`. |
+| `ADMIN_PASSWORD` | yes, for the admin account | Password for account ID `admin`. Only this account can capture content or refresh prices. |
 | `AUTH_SECRET` | yes, to sign in | Long random string that signs the session cookie. |
 | `SCRAPER_CONCURRENCY` | no | URLs scraped at the same time, 1–5 (default 3). |
 | `SCRAPER_TIMEOUT_MS` | no | Navigation timeout per URL (default 30000). |
@@ -188,7 +189,7 @@ Responses use `{ "data": ... }` for success and `{ "error": { "code", "message",
 
 ## Notes and limitations
 
-- One sign-in account, ID `alfo2ad`. All data is still scoped by `workspaceId` (`DEFAULT_WORKSPACE_ID`, default `default`).
+- Two sign-in accounts share one workspace (`DEFAULT_WORKSPACE_ID`, default `default`): `eslam_dermaelle` (member) and `admin`. Only `admin` can capture content or refresh prices.
 - Scrapes run inside the request (`maxDuration` is 300 seconds), which suits a small number of URLs. A background job queue is the natural next step for scheduled refreshes.
 - The refresh cooldown and the per-product run lock live in memory, so they are per server instance.
 - Tests are pinned to Vitest 3 so they run on Node 20; newer Vitest majors require Node 22.12+.

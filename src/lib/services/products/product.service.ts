@@ -8,6 +8,7 @@ import {
   PriceObservation,
   Product,
   ProductContentSnapshot,
+  ProductReview,
   ProductSource,
   Retailer,
   type ProductDoc,
@@ -112,6 +113,7 @@ export async function listProducts(
     const rx = new RegExp(escapeRegex(query.q), "i");
     filter.$or = [{ name: rx }, { brand: rx }];
   }
+  if (query.brand) filter.brand = new RegExp(`^${escapeRegex(query.brand)}$`, "i");
   if (query.position) filter["latestAnalysis.position"] = query.position;
 
   const direction = query.order === "asc" ? 1 : -1;
@@ -213,5 +215,6 @@ export async function deleteProduct(workspaceId: string, id: string): Promise<vo
     PriceObservation.deleteMany({ workspaceId, productId: id }),
     Alert.deleteMany({ workspaceId, productId: id }),
     ProductContentSnapshot.deleteMany({ workspaceId, productId: id }),
+    ProductReview.deleteMany({ workspaceId, productId: id }),
   ]);
 }

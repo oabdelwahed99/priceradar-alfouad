@@ -18,7 +18,7 @@ export const metadata: Metadata = { title: "Price Matrix · Price Radar" };
 
 function matrixQueryString(query: PriceMatrixQuery, overrides: Partial<PriceMatrixQuery> = {}): string {
   const next = { ...query, ...overrides };
-  return toQueryString({ q: next.q, position: next.position, demo: next.demo });
+  return toQueryString({ q: next.q, category: next.category, position: next.position, demo: next.demo });
 }
 
 function Legend() {
@@ -41,7 +41,7 @@ function Legend() {
 export default async function PriceMatrixPage(props: PageProps<"/matrix">) {
   const query = parseSearchParamsLenient(priceMatrixQuerySchema, await props.searchParams);
   const result = await loadPageData(() => getPriceMatrix(getCurrentWorkspaceId(), query));
-  const filtered = Boolean(query.q || query.position);
+  const filtered = Boolean(query.q || query.category || query.position);
 
   const demoToggle =
     result.ok && result.data.demoProductCount > 0 ? (
@@ -97,7 +97,12 @@ export default async function PriceMatrixPage(props: PageProps<"/matrix">) {
         <>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0 flex-1">
-              <ProductsFilters q={query.q ?? ""} position={query.position ?? null} />
+              <ProductsFilters
+                q={query.q ?? ""}
+                position={query.position ?? null}
+                category={query.category ?? null}
+                categories={result.data.categories}
+              />
             </div>
             {demoToggle}
           </div>
@@ -105,7 +110,7 @@ export default async function PriceMatrixPage(props: PageProps<"/matrix">) {
             <EmptyState
               icon={Grid3x3}
               title="No matching products"
-              description="Try a different search term or position filter."
+              description="Try a different search term, category, or position filter."
               action={
                 <Link href={`/matrix${matrixQueryString({ demo: query.demo })}`} className={buttonVariants({ variant: "outline" })}>
                   Clear filters

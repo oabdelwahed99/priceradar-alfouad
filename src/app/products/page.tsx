@@ -23,6 +23,7 @@ function productsHref(query: ListProductsQuery, overrides: Partial<ListProductsQ
   const next = { ...query, ...overrides };
   return `/products${toQueryString({
     q: next.q,
+    brand: next.brand,
     position: next.position,
     sort: next.sort === DEFAULT_SORT.sort && next.order === DEFAULT_SORT.order ? null : next.sort,
     order: next.sort === DEFAULT_SORT.sort && next.order === DEFAULT_SORT.order ? null : next.order,
@@ -34,7 +35,7 @@ function productsHref(query: ListProductsQuery, overrides: Partial<ListProductsQ
 export default async function ProductsPage(props: PageProps<"/products">) {
   const query = parseSearchParamsLenient(listProductsQuerySchema, await props.searchParams);
   const result = await loadPageData(() => listProducts(getCurrentWorkspaceId(), query));
-  const filtered = Boolean(query.q || query.position);
+  const filtered = Boolean(query.q || query.brand || query.position);
 
   return (
     <>

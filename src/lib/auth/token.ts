@@ -1,4 +1,4 @@
-import { ACCOUNT_ID, SESSION_TTL_MS } from "@/lib/auth/constants";
+import { findAccount, SESSION_TTL_MS, type AccountSession } from "@/lib/auth/constants";
 
 function toHex(buffer: ArrayBuffer): string {
   return [...new Uint8Array(buffer)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
@@ -28,33 +28,33 @@ function authSecret(): string | null {
   return secret && secret.length > 0 ? secret : null;
 }
 
-export async function createSessionToken(now = Date.now()): Promise<string> {
+export async function createSessionToken(accountId: string, now = Date.now()): Promise<string> {
   const secret = authSecret();
   if (!secret) throw new Error("AUTH_SECRET is not set.");
+  const account = findAccount(accountId);
+  if (!account) throw new Error("Unknown account.");
   const expiresAt = now + SESSION_TTL_MS;
-  const payload = `${ACCOUNT_ID}.${expiresAt}`;
+  const payload = `${account.id}.${expiresAt}`;
   const signature = await hmac(secret, payload);
   return `${payload}.${signature}`;
 }
 
-export async function verifySessionToken(
-  token: string | undefined,
-  now = Date.now(),
-): Promise<{ accountId: string } | null> {
+export async function verifySessionToken(token: string | undefined, now = Date.now()): Promise<AccountSession | null> {
   const secret = authSecret();
   if (!secret || !token) return null;
 
   const parts = token.split(".");
   if (parts.length !== 3) return null;
   const [accountId, expiresRaw, signature] = parts;
-  if (accountId !== ACCOUNT_ID || !/^\d+$/.test(expiresRaw)) return null;
+  const account = findAccount(accountId);
+  if (!account || !/^\d+$/.test(expiresRaw)) return null;
 
   const expiresAt = Number(expiresRaw);
   if (expiresAt <= now) return null;
 
   const expected = await hmac(secret, `${accountId}.${expiresRaw}`);
   if (!timingSafeEqual(expected, signature)) return null;
-  return { accountId };
+  return { accountId: account.id, name: account.name, role: account.role };
 }
 
 export async function passwordMatches(input: string, expected: string): Promise<boolean> {

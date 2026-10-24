@@ -5,12 +5,15 @@ import type { RetailerDoc } from "@/models";
 export const toIso = (d: Date | string | null | undefined): string | null =>
   d ? new Date(d).toISOString() : null;
 
-export function toRetailerDTO(r: Pick<RetailerDoc, "_id" | "name" | "domain" | "isOwnStore" | "createdAt">): RetailerDTO {
+export function toRetailerDTO(
+  r: Pick<RetailerDoc, "_id" | "name" | "domain" | "isOwnStore" | "createdAt"> & { isBrandStore?: boolean | null },
+): RetailerDTO {
   return {
     id: String(r._id),
     name: r.name,
     domain: r.domain,
     isOwnStore: Boolean(r.isOwnStore),
+    isBrandStore: Boolean(r.isBrandStore),
     createdAt: toIso(r.createdAt) ?? new Date(0).toISOString(),
   };
 }

@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { AppShell } from "@/components/layout/app-shell";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { getSession } from "@/lib/auth/session";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -20,7 +21,8 @@ export const metadata: Metadata = {
   description: "Compare cosmetics prices across stores with rule-based pricing recommendations.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const account = await getSession();
   return (
     <html
       lang="en"
@@ -28,7 +30,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="flex min-h-full bg-background">
         <TooltipProvider>
-          <AppShell>{children}</AppShell>
+          <AppShell account={account}>{children}</AppShell>
           <Toaster richColors position="top-right" />
         </TooltipProvider>
       </body>

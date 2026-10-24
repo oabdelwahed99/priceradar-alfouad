@@ -4,10 +4,10 @@ import { buildPriceMatrix, priceMatrixToCsv, type PriceMatrixInput } from "./pri
 
 const id = () => new Types.ObjectId();
 
-const own = { _id: id(), name: "Al Fouad", domain: "alfouad.example", isOwnStore: true };
-const noon = { _id: id(), name: "Noon", domain: "noon.example", isOwnStore: false };
-const bloom = { _id: id(), name: "Bloom", domain: "bloom.example", isOwnStore: false };
-const amazon = { _id: id(), name: "Amazon", domain: "amazon.example", isOwnStore: false };
+const own = { _id: id(), name: "Al Fouad", domain: "alfouad.example", isOwnStore: true, isBrandStore: false };
+const noon = { _id: id(), name: "Noon", domain: "noon.example", isOwnStore: false, isBrandStore: false };
+const bloom = { _id: id(), name: "Bloom", domain: "bloom.example", isOwnStore: false, isBrandStore: false };
+const amazon = { _id: id(), name: "Amazon", domain: "amazon.example", isOwnStore: false, isBrandStore: false };
 
 const at = new Date("2026-09-26T10:00:00Z");
 

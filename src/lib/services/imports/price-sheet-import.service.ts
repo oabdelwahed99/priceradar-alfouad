@@ -12,6 +12,8 @@ export interface PriceSheetStore {
   key: string;
   name: string;
   isOwnStore?: boolean;
+  /** Official brand shop; labelled "Official store" in the UI. */
+  isBrandStore?: boolean;
 }
 
 /** `url` missing means the store has no usable link for this product; `price` missing means none was recorded. */
@@ -42,12 +44,18 @@ export type SheetSkipReason = "MISSING_URL" | "INVALID_URL";
 export interface PlannedSource {
   storeName: string;
   isOwnStore: boolean;
+  isBrandStore: boolean;
   url: string;
   domain: string;
   sortOrder: number;
   price: number | null;
   availability: Availability;
 }
+
+const BRAND_STORE_NAMES: Record<string, string> = {
+  "e-dermaelle.com": "Dermaelle Official",
+  "eparkville.com": "Bobai Official",
+};
 
 export interface PlannedRow {
   name: string;
@@ -91,11 +99,14 @@ export function planPriceSheet(sheet: PriceSheet): { currency: string; rows: Pla
         planned.skipped.push({ storeName: store.name, reason: "INVALID_URL", price });
         return;
       }
+      const domain = normalizeDomain(url.data);
+      const isBrandStore = Boolean(store.isBrandStore);
       planned.sources.push({
-        storeName: store.name,
+        storeName: (isBrandStore && BRAND_STORE_NAMES[domain]) || store.name,
         isOwnStore: Boolean(store.isOwnStore),
+        isBrandStore,
         url: url.data,
-        domain: normalizeDomain(url.data),
+        domain,
         sortOrder,
         price,
         availability: cell.outOfStock ? "out_of_stock" : "unknown",
@@ -127,11 +138,15 @@ export interface PriceSheetImportRowReport {
 }
 
 async function upsertRetailer(workspaceId: string, source: PlannedSource): Promise<RetailerDoc> {
+  const $set: Record<string, boolean> = {};
+  // Only mark own/brand from the sheet's reference store — never force Al Fouad.
+  if (source.isOwnStore) $set.isOwnStore = true;
+  if (source.isBrandStore) $set.isBrandStore = true;
   const retailer = await Retailer.findOneAndUpdate(
     { workspaceId, domain: source.domain },
     {
       $setOnInsert: { workspaceId, domain: source.domain, name: source.storeName },
-      ...(source.isOwnStore ? { $set: { isOwnStore: true } } : {}),
+      ...($set.isOwnStore || $set.isBrandStore ? { $set } : {}),
     },
     { upsert: true, returnDocument: "after", setDefaultsOnInsert: true },
   ).lean<RetailerDoc>();
@@ -167,6 +182,10 @@ export async function importPriceSheet(
         currency: plan.currency,
       });
       product = doc.toObject();
+    } else if (row.category && row.category !== product.category) {
+      // Re-imports refresh the product line / category without touching prices or sources.
+      await Product.updateOne({ _id: product._id }, { $set: { category: row.category } });
+      product = { ...product, category: row.category };
     }
 
     let sourcesAdded = 0;

@@ -12,6 +12,7 @@ import {
   PackageSearch,
   Plus,
   Store,
+  Tags,
   Target,
 } from "lucide-react";
 import { AlertItem } from "@/components/alerts/alert-item";
@@ -24,9 +25,10 @@ import { PageHeader } from "@/components/layout/page-header";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { loadPageData } from "@/lib/db/page-data";
+import { listBrands } from "@/lib/services/brands/brand.service";
 import { getDashboardStats } from "@/lib/services/dashboard/dashboard.service";
 import { getCurrentWorkspaceId } from "@/lib/workspace";
-import type { DashboardStatsDTO } from "@/types/dto";
+import type { BrandListItemDTO, DashboardStatsDTO } from "@/types/dto";
 
 export const metadata: Metadata = { title: "Dashboard · Price Radar" };
 
@@ -38,7 +40,11 @@ const addProductLink = (
 
 export default async function DashboardPage() {
   await connection();
-  const result = await loadPageData(() => getDashboardStats(getCurrentWorkspaceId()));
+  const workspaceId = getCurrentWorkspaceId();
+  const result = await loadPageData(async () => {
+    const [stats, brands] = await Promise.all([getDashboardStats(workspaceId), listBrands(workspaceId)]);
+    return { stats, brands };
+  });
 
   return (
     <>
@@ -50,7 +56,7 @@ export default async function DashboardPage() {
 
       {!result.ok ? (
         <DatabaseNotice message={result.message} />
-      ) : result.data.totalProducts === 0 ? (
+      ) : result.data.stats.totalProducts === 0 ? (
         <EmptyState
           icon={PackageSearch}
           title="Start by adding a product"
@@ -58,13 +64,14 @@ export default async function DashboardPage() {
           action={addProductLink}
         />
       ) : (
-        <DashboardContent stats={result.data} />
+        <DashboardContent stats={result.data.stats} brands={result.data.brands} />
       )}
     </>
   );
 }
 
-function DashboardContent({ stats }: { stats: DashboardStatsDTO }) {
+function DashboardContent({ stats, brands }: { stats: DashboardStatsDTO; brands: BrandListItemDTO[] }) {
+  const dermaelle = brands.find((b) => b.slug === "dermaelle");
   const slightlyUnder = stats.positionCounts.SLIGHTLY_UNDERPRICED;
   const slightlyOver = stats.positionCounts.SLIGHTLY_OVERPRICED;
 
@@ -101,6 +108,47 @@ function DashboardContent({ stats }: { stats: DashboardStatsDTO }) {
           hint="Within ±5% of median"
         />
       </div>
+
+      {dermaelle && dermaelle.productCount > 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Tags className="size-4" /> Dermaelle
+              <span className="rounded bg-primary/10 px-1.5 py-0.5 text-xs font-medium text-primary">Focus brand</span>
+            </CardTitle>
+            <CardDescription>
+              Sellers vs the official Dermaelle price on {dermaelle.officialDomain}.
+            </CardDescription>
+            <CardAction>
+              <Link href="/brands/dermaelle" className={buttonVariants({ variant: "ghost", size: "sm" })}>
+                Open brand <ArrowRight />
+              </Link>
+            </CardAction>
+          </CardHeader>
+          <CardContent>
+            <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4 text-sm">
+              <div>
+                <dt className="text-xs text-muted-foreground">Products</dt>
+                <dd className="text-xl font-semibold tabular-nums">{dermaelle.productCount}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-muted-foreground">Stores</dt>
+                <dd className="text-xl font-semibold tabular-nums">{dermaelle.storeCount}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-muted-foreground">Below official</dt>
+                <dd className="text-xl font-semibold tabular-nums text-rose-700 dark:text-rose-400">
+                  {dermaelle.belowOfficial}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs text-muted-foreground">Out of stock</dt>
+                <dd className="text-xl font-semibold tabular-nums">{dermaelle.outOfStock}</dd>
+              </div>
+            </dl>
+          </CardContent>
+        </Card>
+      ) : null}
 
       {stats.productsCompared > 0 ? (
         <Card size="sm">

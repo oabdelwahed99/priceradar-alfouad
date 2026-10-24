@@ -32,6 +32,16 @@ export interface ScrapeSuccess {
   scrapedAt: string;
 }
 
+/** A single customer review extracted from a product page. */
+export interface ExtractedReview {
+  /** Stable id for de-duplication (hash of author + date + text). */
+  hash: string;
+  author: string | null;
+  rating: number | null;
+  text: string;
+  publishedAt: string | null;
+}
+
 export interface PageContent {
   title: string | null;
   metaDescription: string | null;
@@ -43,6 +53,8 @@ export interface PageContent {
   rating: { value: number | null; count: number | null } | null;
   images: { total: number; withAlt: number };
   language: string | null;
+  /** Customer reviews found on the page (JSON-LD, microdata or common widgets). */
+  reviews: ExtractedReview[];
 }
 
 export interface ScrapeFailure {

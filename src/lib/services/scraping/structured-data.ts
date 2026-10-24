@@ -41,7 +41,16 @@ function* walk(node: unknown, depth = 0): Generator<JsonObject> {
   if (!isObject(node)) return;
   yield node;
   for (const [key, value] of Object.entries(node)) {
-    if (key === "offers" || key === "hasVariant" || key === "@graph" || key === "mainEntity" || key === "itemListElement" || key === "item") {
+    if (
+      key === "offers" ||
+      key === "hasVariant" ||
+      key === "@graph" ||
+      key === "mainEntity" ||
+      key === "itemListElement" ||
+      key === "item" ||
+      key === "review" ||
+      key === "reviews"
+    ) {
       yield* walk(value, depth + 1);
     }
   }

@@ -191,60 +191,6 @@ export const hairCarePriceSheet: PriceSheet = {
       },
     },
     {
-      name: "Dermaelle Glycolic Acid Toner - 350ml",
-      brand: "Dermaelle",
-      size: "350ml",
-      category: "Skin care",
-      cells: {
-        alfouad: {
-          url: "https://alfouadpharmacies.com/en/products/dermaelle-glycolic-acid-toner-350-ml",
-          price: 250,
-        },
-        noon: {
-          url: "https://www.noon.com/egypt-ar/dermaelle-gentle-exfoliating-radiance-glycolic-acid-toner-350ml/ZCF90116585B514D7D897Z/p/",
-          price: 250,
-        },
-        tay: { url: "https://taypharmacies.com/product/1262137/dermaelle-glycolic-acid-toner-350ml", price: 440 },
-        amazon: {
-          url: "https://www.amazon.eg/-/en/Dermaelle-Gentle-Exfoliating-Radiance-Glycolic/dp/B0FV2XKRF2",
-          price: 249,
-        },
-      },
-    },
-    {
-      name: "Dermaelle Hyaluwhite Sensitive Area Cream 60ml",
-      brand: "Dermaelle",
-      size: "60ml",
-      category: "Skin care",
-      cells: {
-        alfouad: { url: "https://alfouadpharmacies.com/en/products/dermaelle-hyaluwhite-sensitive-area-cream-60ml" },
-        noon: {
-          url: "https://www.noon.com/egypt-en/dermaelle-hyalu-white-sensitive-area-cream-60ml/ZB83E97E5DD4CE1453E26Z/p/",
-          outOfStock: true,
-        },
-        tay: { url: "https://taypharmacies.com/product/958694/dermaelle-hyalu-white-sensitive-area-cream-60ml" },
-        amazon: { url: "https://www.amazon.eg/-/en/Dermaelle-Hyalu-White-Sensitive-Cream/dp/B0DJZ979QC" },
-      },
-    },
-    {
-      name: "Dermaelle Skin Booster Serum 30ml",
-      brand: "Dermaelle",
-      size: "30ml",
-      category: "Skin care",
-      cells: {
-        alfouad: { url: "https://alfouadpharmacies.com/en/products/dermaelle-advanc-skin-booster-serum-30-ml" },
-        noon: {
-          url: "https://www.noon.com/egypt-ar/dermaelle-advanced-skinbooster-microneedling-serum-30ml/Z57963152627092705BD6Z/p/",
-          outOfStock: true,
-        },
-        tay: { url: "https://taypharmacies.com/product/1262135/dermaelle-advanced-skin-booster-serum-30ml" },
-        delmar: { url: "https://www.delmar-attalla.com/products/dermaelle-skin-booster-advanced-serum-30-ml/145972" },
-        amazon: {
-          url: "https://www.amazon.eg/%D8%B3%D9%8A%D8%B1%D9%88%D9%85-%D8%AF%D9%8A%D8%B1%D9%85%D8%A7%D9%8A%D9%84-%D8%A7%D8%AF%D9%81%D8%A7%D9%86%D8%B3%D8%AF-%D8%A8%D8%A7%D9%84%D8%A5%D8%A8%D8%B1-%D8%A7%D9%84%D8%AF%D9%82%D9%8A%D9%82%D8%A9/dp/B0FV2WLN7B",
-        },
-      },
-    },
-    {
       name: "Mood Flower Bliss (Splash+Hand+Shower+Milk)",
       brand: "Mood",
       category: "Body care",

@@ -74,10 +74,44 @@ describe("planPriceSheet", () => {
 describe("hair care price sheet data", () => {
   it("is valid and only skips the cells whose links were cut off", () => {
     const { rows } = planPriceSheet(hairCarePriceSheet);
-    expect(rows).toHaveLength(14);
+    expect(rows).toHaveLength(11);
     expect(rows.every((r) => r.sources[0]?.isOwnStore)).toBe(true);
     const skipped = rows.flatMap((r) => r.skipped.map((s) => `${r.name} @ ${s.storeName}`));
     expect(skipped).toHaveLength(5);
     expect(rows.flatMap((r) => r.skipped).every((s) => s.reason === "MISSING_URL")).toBe(true);
+  });
+});
+
+describe("brand price sheet data", () => {
+  it("is valid with the official brand store first", async () => {
+    const { brandPriceSheet } = await import("../../../../scripts/data/brand-price-sheet");
+    const { rows } = planPriceSheet(brandPriceSheet);
+    expect(rows).toHaveLength(16);
+    expect(rows.every((r) => r.sources[0]?.isOwnStore)).toBe(true);
+    expect(rows.every((r) => r.sources[0]?.isBrandStore)).toBe(true);
+    expect(rows.filter((r) => r.brand === "Dermaelle")).toHaveLength(15);
+    expect(rows.filter((r) => r.brand === "Bobai")).toHaveLength(1);
+  });
+
+  it("assigns each product to a product-line category", async () => {
+    const { brandPriceSheet } = await import("../../../../scripts/data/brand-price-sheet");
+    const { rows } = planPriceSheet(brandPriceSheet);
+    const byName = Object.fromEntries(rows.map((r) => [r.name, r.category]));
+    expect(byName["Dermaelle Sebum Control Cleansing Gel 200ml"]).toBe("HYALUBALANCE");
+    expect(byName["Dermaelle Acne-Prone Skin Treatment Cream 60ml"]).toBe("HYALUBALANCE");
+    expect(byName["Dermaelle UV Defense SPF 50 Gel-Cream 60ml"]).toBe("SUNSCREAM");
+    expect(byName["Dermaelle UV Defense SPF 50 Invisible Fluid 60ml"]).toBe("SUNSCREAM");
+    expect(byName["Bobai Sun Screen oil Defense Fluid spf 50 75ML"]).toBe("SUNSCREAM");
+    expect(byName["Dermaelle Advanced Skinbooster Microneedling Serum 30ml"]).toBe("SERUMS");
+    expect(byName["Dermaelle Pore Refining & Brightening Niacinamide Toner 350ml"]).toBe("TONERS");
+    expect(byName["Dermaelle Gentle Exfoliating & Radiance Glycolic Acid Toner 350ml"]).toBe("TONERS");
+    expect(byName["Dermaelle Barrier Repair Cica Body Lotion 200ml"]).toBe("CICA");
+    expect(byName["Dermaelle Barrier Repair Cica Cream 60ml"]).toBe("CICA");
+    expect(byName["Dermaelle Sensitive Area Brightening Cream 60ml"]).toBe("HYALUWHITE");
+    expect(byName["Dermaelle Anti-Dark Knuckles Treatment Cream 150ml"]).toBe("HYALUWHITE");
+    expect(byName["Dermaelle Brightening Face & Neck Cream 60ml"]).toBe("HYALUWHITE");
+    expect(byName["Dermaelle Brightening Feminine Wash 200ml"]).toBe("HYALUWHITE");
+    expect(byName["Dermaelle Brightening Facial Foaming Cleanser 200ml"]).toBe("HYALUWHITE");
+    expect(byName["Dermaelle Brightening Exfoliating Cleanser 200ml"]).toBe("HYALUWHITE");
   });
 });

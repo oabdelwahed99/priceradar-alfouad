@@ -14,6 +14,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DatabaseNotice } from "@/components/layout/database-notice";
+import { getSession } from "@/lib/auth/session";
 import { loadPageData } from "@/lib/db/page-data";
 import { NotFoundError } from "@/lib/errors";
 import { DEMO_REFRESH_MESSAGE, getProductOverview } from "@/lib/services/comparison/comparison.service";
@@ -28,7 +29,8 @@ export async function generateMetadata(props: PageProps<"/products/[id]">): Prom
 }
 
 export default async function ProductDetailPage(props: PageProps<"/products/[id]">) {
-  const [{ id }, searchParams] = await Promise.all([props.params, props.searchParams]);
+  const [{ id }, searchParams, session] = await Promise.all([props.params, props.searchParams, getSession()]);
+  const isAdmin = session?.role === "admin";
   const tab = searchParams.tab === "content" ? "content" : "pricing";
 
   let result;
@@ -50,6 +52,7 @@ export default async function ProductDetailPage(props: PageProps<"/products/[id]
   const { product, analysis, rows, history, content } = result.data;
   const lastCheckedAt = product.lastCheckedAt ? new Date(product.lastCheckedAt).toISOString() : null;
   const subtitle = [product.brand, product.size].filter(Boolean).join(" · ");
+  const referenceIsBrandStore = rows.some((r) => r.isOwnStore && r.isBrandStore);
 
   return (
     <>
@@ -73,11 +76,13 @@ export default async function ProductDetailPage(props: PageProps<"/products/[id]
         }
         actions={
           <>
-            <RefreshButton
-              productId={id}
-              sourceCount={rows.length}
-              disabledReason={product.isDemo ? DEMO_REFRESH_MESSAGE : undefined}
-            />
+            {isAdmin ? (
+              <RefreshButton
+                productId={id}
+                sourceCount={rows.length}
+                disabledReason={product.isDemo ? DEMO_REFRESH_MESSAGE : undefined}
+              />
+            ) : null}
             <DeleteProductButton productId={id} productName={product.name} />
           </>
         }
@@ -93,15 +98,19 @@ export default async function ProductDetailPage(props: PageProps<"/products/[id]
         </TabsList>
 
         <TabsContent value="pricing" keepMounted className="space-y-6">
-          <PriceSummary analysis={analysis} />
+          <PriceSummary analysis={analysis} referenceIsBrandStore={referenceIsBrandStore} />
 
           <Card>
             <CardHeader>
-              <CardTitle>Competitor comparison</CardTitle>
-              <CardDescription>Difference shows each competitor&apos;s price relative to yours.</CardDescription>
+              <CardTitle>{referenceIsBrandStore ? "Seller comparison" : "Competitor comparison"}</CardTitle>
+              <CardDescription>
+                {referenceIsBrandStore
+                  ? "Difference shows each seller's price relative to the official price."
+                  : "Difference shows each competitor\u2019s price relative to yours."}
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <CompetitorTable productId={id} rows={rows} allowRetry={!product.isDemo} />
+              <CompetitorTable productId={id} rows={rows} allowRetry={isAdmin && !product.isDemo} />
             </CardContent>
           </Card>
 
@@ -127,6 +136,7 @@ export default async function ProductDetailPage(props: PageProps<"/products/[id]
             productId={id}
             product={{ name: product.name, brand: product.brand ?? null, size: product.size ?? null }}
             isDemo={Boolean(product.isDemo)}
+            canCapture={isAdmin}
           />
         </TabsContent>
       </Tabs>

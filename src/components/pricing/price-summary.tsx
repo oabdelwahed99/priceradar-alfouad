@@ -16,12 +16,26 @@ function Stat({ label, children, hint }: { label: string; children: React.ReactN
 }
 
 const INSUFFICIENT_MESSAGES = {
-  NO_OWN_PRICE: "Your store's price could not be extracted, so your position cannot be calculated.",
-  NO_COMPETITOR_PRICES: "No competitor prices are available yet, so market statistics cannot be calculated.",
+  NO_OWN_PRICE: {
+    own: "Your store's price could not be extracted, so your position cannot be calculated.",
+    official: "The official store's price could not be extracted, so the position cannot be calculated.",
+  },
+  NO_COMPETITOR_PRICES: {
+    own: "No competitor prices are available yet, so market statistics cannot be calculated.",
+    official: "No seller prices are available yet, so market statistics cannot be calculated.",
+  },
 } as const;
 
-export function PriceSummary({ analysis }: { analysis: ProductAnalysisDTO }) {
+export function PriceSummary({
+  analysis,
+  referenceIsBrandStore = false,
+}: {
+  analysis: ProductAnalysisDTO;
+  /** When true, the reference price is the brand's official shop. */
+  referenceIsBrandStore?: boolean;
+}) {
   const c = analysis.currency;
+  const mode = referenceIsBrandStore ? "official" : "own";
   const range =
     analysis.marketMinimum !== null && analysis.marketMaximum !== null
       ? `${formatMoney(analysis.marketMinimum, c)} – ${formatMoney(analysis.marketMaximum, c)}`
@@ -32,13 +46,15 @@ export function PriceSummary({ analysis }: { analysis: ProductAnalysisDTO }) {
       {analysis.status === "INSUFFICIENT_DATA" && analysis.reason ? (
         <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-sm text-amber-800 dark:text-amber-300">
           <Info className="mt-0.5 size-4 shrink-0" />
-          {INSUFFICIENT_MESSAGES[analysis.reason]}
+          {INSUFFICIENT_MESSAGES[analysis.reason][mode]}
         </div>
       ) : null}
 
       <Card>
         <CardContent className="grid grid-cols-2 gap-6 md:grid-cols-4 xl:grid-cols-7">
-          <Stat label="Your price">{formatMoney(analysis.ownPrice, c)}</Stat>
+          <Stat label={referenceIsBrandStore ? "Official price" : "Your price"}>
+            {formatMoney(analysis.ownPrice, c)}
+          </Stat>
           <Stat label="Market median">{formatMoney(analysis.marketMedian, c)}</Stat>
           <Stat label="Market average">{formatMoney(analysis.marketAverage, c)}</Stat>
           <Stat label="Market range">
@@ -60,7 +76,13 @@ export function PriceSummary({ analysis }: { analysis: ProductAnalysisDTO }) {
         <div className="flex items-start gap-2">
           <Lightbulb className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
           <div className="space-y-0.5">
-            {analysis.suggestion ? <p>{analysis.suggestion.explanation}</p> : null}
+            {analysis.suggestion ? (
+              <p>
+                {referenceIsBrandStore
+                  ? analysis.suggestion.explanation.replace(/^Your price/, "The official price")
+                  : analysis.suggestion.explanation}
+              </p>
+            ) : null}
             <p className="text-muted-foreground">
               {SUGGESTED_PRICE_DISCLAIMER} It does not consider your cost, margin, inventory, demand or promotions.
             </p>

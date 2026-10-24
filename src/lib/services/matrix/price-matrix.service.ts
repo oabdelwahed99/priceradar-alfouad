@@ -18,13 +18,25 @@ import { escapeRegex, type LeanProduct } from "../products/product.service";
 
 export const PRICE_MATRIX_MAX_PRODUCTS = 500;
 
+/** Preferred order for known product lines on the matrix category filter. */
+const CATEGORY_ORDER = ["HYALUBALANCE", "SUNSCREAM", "SERUMS", "CICA", "HYALUWHITE", "TONERS"];
+
 type MatrixSource = Pick<
   ProductSourceDoc,
   "_id" | "productId" | "retailerId" | "url" | "isOwnStore" | "sortOrder" | "scrapingStatus" | "lastError"
 >;
 type MatrixObservation = Pick<PriceObservationDoc, "price" | "currency" | "availability" | "scrapedAt" | "origin">;
-type MatrixRetailer = Pick<RetailerDoc, "_id" | "name" | "domain" | "isOwnStore">;
+type MatrixRetailer = Pick<RetailerDoc, "_id" | "name" | "domain" | "isOwnStore" | "isBrandStore">;
 type MatrixProduct = Pick<LeanProduct, "_id" | "name" | "brand" | "size" | "currency" | "isDemo" | "latestAnalysis">;
+
+function sortCategories(categories: string[]): string[] {
+  return [...categories].sort((a, b) => {
+    const ai = CATEGORY_ORDER.indexOf(a.toUpperCase());
+    const bi = CATEGORY_ORDER.indexOf(b.toUpperCase());
+    if (ai !== -1 || bi !== -1) return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+    return a.localeCompare(b, undefined, { sensitivity: "base" });
+  });
+}
 
 export interface PriceMatrixInput {
   /** Rows appear in this order. */
@@ -116,6 +128,7 @@ export function buildPriceMatrix({ products, sources, retailers, latest }: Price
           name: r.name,
           domain: r.domain,
           isOwnStore: stats.isOwnStore || Boolean(r.isOwnStore),
+          isBrandStore: Boolean(r.isBrandStore),
           productCount: stats.products,
         },
         averageSortOrder: stats.sortOrderSum / stats.products,
@@ -142,17 +155,24 @@ export async function getPriceMatrix(workspaceId: string, query: PriceMatrixQuer
     filter.$or = [{ name: rx }, { brand: rx }];
   }
   if (query.position) filter["latestAnalysis.position"] = query.position;
+  if (query.brand) filter.brand = new RegExp(`^${escapeRegex(query.brand)}$`, "i");
+  if (query.category) filter.category = new RegExp(`^${escapeRegex(query.category)}$`, "i");
 
-  const [matched, demoProductCount] = await Promise.all([
+  const categoryBase: Record<string, unknown> = { workspaceId, category: { $nin: [null, ""] } };
+  if (!query.demo) categoryBase.isDemo = { $ne: true };
+
+  const [matched, demoProductCount, categoryValues] = await Promise.all([
     Product.find(filter)
       .collation({ locale: "en", strength: 2 })
       .sort({ name: 1, _id: 1 })
       .limit(PRICE_MATRIX_MAX_PRODUCTS + 1)
       .lean<LeanProduct[]>(),
     Product.countDocuments({ workspaceId, isDemo: true }),
+    Product.distinct("category", categoryBase),
   ]);
   const truncated = matched.length > PRICE_MATRIX_MAX_PRODUCTS;
   const products = matched.slice(0, PRICE_MATRIX_MAX_PRODUCTS);
+  const categories = sortCategories(categoryValues.filter((c): c is string => typeof c === "string" && c.trim() !== ""));
 
   const sources = await ProductSource.find({ workspaceId, productId: { $in: products.map((p) => p._id) } }).lean<
     ProductSourceDoc[]
@@ -163,7 +183,7 @@ export async function getPriceMatrix(workspaceId: string, query: PriceMatrixQuer
     getLatestObservationsBySource(sources.map((s) => s._id)),
   ]);
 
-  return { ...buildPriceMatrix({ products, sources, retailers, latest }), demoProductCount, truncated };
+  return { ...buildPriceMatrix({ products, sources, retailers, latest }), categories, demoProductCount, truncated };
 }
 
 /** Cells that start like a formula are prefixed so spreadsheet apps treat them as text. */
@@ -190,7 +210,9 @@ export function priceMatrixToCsv({ columns, rows }: Pick<PriceMatrixDTO, "column
     "Brand",
     "Size",
     "Currency",
-    ...columns.map((c) => (c.isOwnStore ? `${c.name} (your price)` : c.name)),
+    ...columns.map((c) =>
+      c.isOwnStore ? `${c.name} (${c.isBrandStore ? "official price" : "your price"})` : c.name,
+    ),
     "Market median",
     "Gap vs median (%)",
     "Position",

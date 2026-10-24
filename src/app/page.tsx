@@ -198,7 +198,7 @@ export default async function HomePage() {
             <div>
               <p className="font-medium">Open the Al Fo2ad workspace</p>
               <p className="mt-1 text-sm text-muted-foreground">
-                {session ? "Signed in as alfo2ad." : "Sign in with account ID alfo2ad."}
+                {session ? `Signed in as ${session.accountId}.` : "Sign in with account ID eslam_dermaelle or admin."}
               </p>
             </div>
             <Link href={enterHref} className={buttonVariants({ className: "h-10 px-4" })}>

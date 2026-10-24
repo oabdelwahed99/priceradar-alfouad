@@ -12,11 +12,13 @@ export function ContentTab({
   productId,
   product,
   isDemo,
+  canCapture,
 }: {
   analysis: ProductContentAnalysisDTO;
   productId: string;
   product: { name: string; brand: string | null; size: string | null };
   isDemo: boolean;
+  canCapture: boolean;
 }) {
   const sourceCount = analysis.pages.length;
   const draftDisabledReason = isDemo
@@ -33,9 +35,15 @@ export function ContentTab({
         description={
           isDemo
             ? "Demo products use generated prices only. Add a real product to analyze its product pages."
-            : "Capture content reads each store page's title, description, headings and FAQ without changing prices. Refresh Prices also captures content."
+            : canCapture
+              ? "Capture content reads each store page's title, description, headings and FAQ without changing prices. Refresh Prices also captures content."
+              : "Page content has not been captured yet. An admin can capture it without changing prices."
         }
-        action={isDemo ? undefined : <CaptureContentButton productId={productId} sourceCount={sourceCount} variant="default" />}
+        action={
+          isDemo || !canCapture ? undefined : (
+            <CaptureContentButton productId={productId} sourceCount={sourceCount} variant="default" />
+          )
+        }
       />
     );
   }
@@ -58,7 +66,7 @@ export function ContentTab({
               analysis={analysis}
               disabledReason={draftDisabledReason}
             />
-            <CaptureContentButton productId={productId} sourceCount={sourceCount} />
+            {canCapture ? <CaptureContentButton productId={productId} sourceCount={sourceCount} /> : null}
           </div>
         )}
       </div>

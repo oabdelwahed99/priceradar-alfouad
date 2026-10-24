@@ -11,6 +11,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { PaginationNav } from "@/components/layout/pagination-nav";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { getSession } from "@/lib/auth/session";
 import { loadPageData } from "@/lib/db/page-data";
 import { CONTENT_OVERVIEW_MAX_PRODUCTS, getContentOverview } from "@/lib/services/content/content-overview.service";
 import { contentOverviewQuerySchema, type ContentOverviewQuery } from "@/lib/validation/content.schema";
@@ -36,7 +37,11 @@ function contentHref(query: ContentOverviewQuery, overrides: Partial<ContentOver
 
 export default async function ContentOverviewPage(props: PageProps<"/content">) {
   const query = parseSearchParamsLenient(contentOverviewQuerySchema, await props.searchParams);
-  const result = await loadPageData(() => getContentOverview(getCurrentWorkspaceId(), query));
+  const [result, session] = await Promise.all([
+    loadPageData(() => getContentOverview(getCurrentWorkspaceId(), query)),
+    getSession(),
+  ]);
+  const isAdmin = session?.role === "admin";
   const filtered = Boolean(query.q || query.band);
 
   return (
@@ -45,7 +50,7 @@ export default async function ContentOverviewPage(props: PageProps<"/content">) 
         title="Content & SEO"
         description="How each of your product pages compares with competitors' pages: score, issues and keyword gaps."
         actions={
-          result.ok && result.data.productIds.length > 0 ? (
+          isAdmin && result.ok && result.data.productIds.length > 0 ? (
             <>
               <BulkScrapeButton mode="prices" productIds={result.data.productIds} />
               <BulkScrapeButton mode="content" productIds={result.data.productIds} variant="default" />
@@ -103,8 +108,15 @@ export default async function ContentOverviewPage(props: PageProps<"/content">) 
               <Info className="mt-0.5 size-4 shrink-0" />
               <p>
                 {result.data.summary.notCaptured} of {result.data.summary.productsAnalyzed} products have no page content yet.
-                Click <span className="font-medium">Capture content</span> to read every store page without changing prices,
-                or <span className="font-medium">Refresh all prices</span> to update prices and content together.
+                {isAdmin ? (
+                  <>
+                    {" "}
+                    Click <span className="font-medium">Capture content</span> to read every store page without changing prices,
+                    or <span className="font-medium">Refresh all prices</span> to update prices and content together.
+                  </>
+                ) : (
+                  " An admin can capture content or refresh prices."
+                )}
               </p>
             </div>
           ) : null}

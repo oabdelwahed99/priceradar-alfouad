@@ -27,3 +27,9 @@ export class ValidationError extends AppError {
     super(message, 400, "VALIDATION_ERROR", details);
   }
 }
+
+export class ForbiddenError extends AppError {
+  constructor(message: string) {
+    super(message, 403, "FORBIDDEN");
+  }
+}

@@ -29,6 +29,7 @@ export interface RetailerDTO {
   name: string;
   domain: string;
   isOwnStore: boolean;
+  isBrandStore: boolean;
   createdAt: string;
 }
 
@@ -79,6 +80,8 @@ export interface CompetitorComparisonRowDTO {
   retailerName: string;
   url: string;
   isOwnStore: boolean;
+  /** Reference store is a brand's official shop (show "Official store" instead of "My Store"). */
+  isBrandStore: boolean;
   price: number | null;
   currency: string | null;
   differencePercentage: number | null;
@@ -230,7 +233,46 @@ export interface PriceMatrixColumnDTO {
   name: string;
   domain: string;
   isOwnStore: boolean;
+  isBrandStore: boolean;
   productCount: number;
+}
+
+export interface BrandListItemDTO {
+  id: string;
+  name: string;
+  slug: string;
+  officialDomain: string;
+  isFocus: boolean;
+  productCount: number;
+  storeCount: number;
+  /** Listings priced below the official price. */
+  belowOfficial: number;
+  /** Listings priced above the official price. */
+  aboveOfficial: number;
+  outOfStock: number;
+}
+
+export interface BrandStoreComplianceDTO {
+  retailerId: string;
+  name: string;
+  domain: string;
+  isBrandStore: boolean;
+  listings: number;
+  belowOfficial: number;
+  aboveOfficial: number;
+  outOfStock: number;
+  /** Mean gap vs official price across in-stock priced listings, in %. */
+  averageGapPercentage: number | null;
+}
+
+export interface BrandDetailDTO {
+  id: string;
+  name: string;
+  slug: string;
+  officialDomain: string;
+  isFocus: boolean;
+  productCount: number;
+  storeCompliance: BrandStoreComplianceDTO[];
 }
 
 export interface PriceMatrixRowDTO {
@@ -248,6 +290,8 @@ export interface PriceMatrixRowDTO {
 export interface PriceMatrixDTO {
   columns: PriceMatrixColumnDTO[];
   rows: PriceMatrixRowDTO[];
+  /** Distinct product categories in the workspace (for the matrix filter). */
+  categories: string[];
   demoProductCount: number;
   /** More products matched than the matrix shows. */
   truncated: boolean;
@@ -405,6 +449,284 @@ export interface PaginatedDTO<T> {
   page: number;
   pageSize: number;
   totalPages: number;
+}
+
+/** ready: can act now. confirm_supply: official store is also out of stock. supply_gap: nobody we track has it. */
+export type OpportunityTone = "ready" | "confirm_supply" | "supply_gap";
+
+export interface SalesOpportunityDTO {
+  productId: string;
+  productName: string;
+  brand: string;
+  size: string | null;
+  category: string | null;
+  retailerId: string;
+  retailerName: string;
+  retailerDomain: string;
+  url: string | null;
+  price: number | null;
+  currency: string | null;
+  observedAt: string | null;
+  /** Stores where this product is currently in stock. Excludes an out-of-stock shelf. */
+  inStockStores: number;
+  /** How many products of this brand the store already lists. */
+  storeBrandListings: number;
+  brandCatalogSize: number;
+  officialOutOfStock: boolean;
+  tone: OpportunityTone;
+  action: string;
+  detail: string;
+}
+
+export interface StoreOpportunityBriefDTO {
+  retailerId: string;
+  name: string;
+  domain: string;
+  brand: string;
+  catalogSize: number;
+  listed: number;
+  inStock: number;
+  outOfStock: number;
+  missing: number;
+  /** Missing products that are in stock somewhere, so they can be pitched. */
+  pitchCount: number;
+  coveragePercentage: number;
+  restocks: SalesOpportunityDTO[];
+  pitches: SalesOpportunityDTO[];
+}
+
+export interface CoveredStoreDTO {
+  retailerId: string;
+  name: string;
+  domain: string;
+  brand: string;
+  catalogSize: number;
+}
+
+/** In stock on the official store, and not listed at any partner. */
+export interface UnopenedProductDTO {
+  productId: string;
+  productName: string;
+  brand: string;
+  size: string | null;
+}
+
+/** A store that already sells another tracked brand, and has never listed this one. */
+export interface UnopenedDoorDTO {
+  retailerId: string;
+  name: string;
+  domain: string;
+  brand: string;
+  catalogSize: number;
+  otherBrandListings: number;
+}
+
+export interface OpportunityBrandOptionDTO {
+  name: string;
+  productCount: number;
+  isFocus: boolean;
+}
+
+export interface MarketOpportunitiesDTO {
+  brands: OpportunityBrandOptionDTO[];
+  /** Null means every brand. */
+  selectedBrand: string | null;
+  selectedBrandSlug: string | null;
+  summary: {
+    productCount: number;
+    partnerStoreCount: number;
+    restockCount: number;
+    newListingCount: number;
+    storesWithGaps: number;
+    unopenedProductCount: number;
+    unopenedDoorCount: number;
+  };
+  stores: StoreOpportunityBriefDTO[];
+  coveredStores: CoveredStoreDTO[];
+  restocks: SalesOpportunityDTO[];
+  newListings: SalesOpportunityDTO[];
+  unopenedProducts: UnopenedProductDTO[];
+  unopenedDoors: UnopenedDoorDTO[];
+  restocksTruncated: boolean;
+  newListingsTruncated: boolean;
+}
+
+export type ReviewSentimentDTO = "positive" | "neutral" | "negative";
+
+export type ReviewThemeIdDTO =
+  | "price"
+  | "delivery"
+  | "packaging"
+  | "authenticity"
+  | "scent"
+  | "texture"
+  | "results"
+  | "irritation"
+  | "hair_loss"
+  | "customer_service";
+
+export interface ReviewThemeStatsDTO {
+  themeId: ReviewThemeIdDTO;
+  label: string;
+  mentions: number;
+  positive: number;
+  neutral: number;
+  negative: number;
+  netSentiment: number;
+}
+
+export interface ReviewKeywordDTO {
+  term: string;
+  count: number;
+}
+
+export interface StoreReviewSummaryDTO {
+  retailerId: string;
+  retailerName: string;
+  domain: string;
+  isOwnStore: boolean;
+  isBrandStore: boolean;
+  reviewCount: number;
+  averageRating: number | null;
+  sentiment: { positive: number; neutral: number; negative: number };
+  positivePercentage: number | null;
+  negativePercentage: number | null;
+  topPraised: ReviewThemeStatsDTO[];
+  topComplained: ReviewThemeStatsDTO[];
+  themes: ReviewThemeStatsDTO[];
+}
+
+export interface ProductReviewGapDTO {
+  productId: string;
+  productName: string;
+  brand: string | null;
+  size: string | null;
+  ownReviewCount: number;
+  ownAverageRating: number | null;
+  competitorReviewCount: number;
+  competitorMedianRating: number | null;
+  ratingGap: number | null;
+  reviewCountGap: number | null;
+}
+
+export interface ReviewListItemDTO {
+  id: string;
+  productId: string;
+  productName: string;
+  brand: string | null;
+  retailerId: string;
+  retailerName: string;
+  isOwnStore: boolean;
+  author: string | null;
+  rating: number | null;
+  text: string;
+  language: string | null;
+  sentiment: ReviewSentimentDTO;
+  themes: ReviewThemeIdDTO[];
+  publishedAt: string | null;
+  firstSeenAt: string;
+}
+
+export interface ReviewsOverviewDTO {
+  summary: {
+    totalReviews: number;
+    averageRating: number | null;
+    positivePercentage: number | null;
+    negativePercentage: number | null;
+    storesCovered: number;
+    productsCovered: number;
+  };
+  stores: StoreReviewSummaryDTO[];
+  themes: ReviewThemeStatsDTO[];
+  productGaps: ProductReviewGapDTO[];
+  positiveKeywords: ReviewKeywordDTO[];
+  negativeKeywords: ReviewKeywordDTO[];
+  recentNegative: ReviewListItemDTO[];
+  reviews: PaginatedDTO<ReviewListItemDTO>;
+  retailers: { id: string; name: string; isOwnStore: boolean }[];
+  /** Product ids that have at least one source (for bulk content capture). */
+  productIds: string[];
+}
+
+export type CampaignInsightTypeDTO =
+  | "competitor_weakness"
+  | "our_weakness"
+  | "strength"
+  | "review_gap"
+  | "price_value";
+
+export interface CampaignInsightDTO {
+  id: string;
+  type: CampaignInsightTypeDTO;
+  title: string;
+  evidence: string;
+  suggestedAction: string;
+  priority: number;
+  themeId: ReviewThemeIdDTO | null;
+  themeLabel: string | null;
+  retailerIds: string[];
+  retailerNames: string[];
+  productIds: string[];
+  productNames: string[];
+  sampleSnippets: string[];
+  /** Reviews that support this card. */
+  reviewCount?: number;
+}
+
+export interface CampaignQuoteDTO {
+  text: string;
+  retailerName: string;
+  rating: number | null;
+  /** Written on the brand's official store. */
+  official: boolean;
+}
+
+export interface CampaignProductAngleDTO {
+  productId: string;
+  productName: string;
+  brand: string;
+  reviewCount: number;
+  averageRating: number | null;
+  positive: number;
+  negative: number;
+  themeLabels: string[];
+  praise: CampaignQuoteDTO[];
+  complaints: CampaignQuoteDTO[];
+  action: string;
+}
+
+export interface CampaignsOverviewDTO {
+  summary: {
+    totalInsights: number;
+    competitorWeaknesses: number;
+    ourWeaknesses: number;
+    strengths: number;
+    reviewGaps: number;
+    priceValue: number;
+    /** Reviews of the selected brand, including the official store. */
+    brandReviewCount: number;
+    /** Reviews placed on a product brief or an insight. */
+    reviewsUsed: number;
+  };
+  insights: CampaignInsightDTO[];
+  productAngles: CampaignProductAngleDTO[];
+  brands: string[];
+  retailers: { id: string; name: string; isOwnStore: boolean }[];
+  selectedBrand: string | null;
+}
+
+export interface CampaignIdeaDTO {
+  name: string;
+  targetAudience: string;
+  keyMessageAr: string;
+  keyMessageEn: string;
+  channels: string[];
+  supportingEvidence: string[];
+}
+
+export interface CampaignIdeasResultDTO {
+  prompt: string;
+  ideas: CampaignIdeaDTO[];
 }
 
 export type { PricePosition };

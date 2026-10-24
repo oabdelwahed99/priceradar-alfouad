@@ -4,13 +4,14 @@ import { connectToDatabase } from "@/lib/db/mongoose";
 import { assertObjectId } from "@/lib/db/object-id";
 import {
   ProductContentSnapshot,
+  ProductReview,
   type ProductContentSnapshotDoc,
   type ProductSourceDoc,
   type RetailerDoc,
 } from "@/models";
 import type { ProductContentAnalysisDTO } from "@/types/dto";
 import { getProductDoc, getProductSources } from "../products/product.service";
-import type { PageContent } from "../scraping/types";
+import type { ExtractedReview, PageContent } from "../scraping/types";
 import { buildContentAnalysis, type ContentFields, type ContentPageInput } from "./content-analysis";
 
 /** Copy fields that define a content version. Ratings and image counts change often and are updated in place. */
@@ -43,14 +44,71 @@ export type RecordContentResult =
   | { kind: "unchanged" }
   | { kind: "changed"; fields: TrackedContentField[]; previousCapturedAt: Date };
 
+const ARABIC_LETTER = /[\u0600-\u06FF]/;
+
+function detectReviewLanguage(text: string, pageLanguage: string | null): string | null {
+  const arabicChars = (text.match(/[\u0600-\u06FF]/g) ?? []).length;
+  const latinChars = (text.match(/[A-Za-z]/g) ?? []).length;
+  if (arabicChars > latinChars && arabicChars >= 3) return "ar";
+  if (latinChars > arabicChars && latinChars >= 3) return "en";
+  if (pageLanguage) return pageLanguage.slice(0, 2).toLowerCase();
+  if (ARABIC_LETTER.test(text)) return "ar";
+  return null;
+}
+
+/** Upserts extracted reviews; existing hashes are left unchanged. */
+export async function recordProductReviews(
+  input: Omit<RecordContentInput, "content"> & { reviews: ExtractedReview[]; language: string | null },
+): Promise<number> {
+  const { reviews, language, capturedAt } = input;
+  if (reviews.length === 0) return 0;
+  const productId = new Types.ObjectId(String(input.productId));
+  const retailerId = new Types.ObjectId(String(input.retailerId));
+  const sourceId = new Types.ObjectId(String(input.sourceId));
+  const ops = reviews.map((review) => ({
+    updateOne: {
+      filter: { sourceId, hash: review.hash },
+      update: {
+        $setOnInsert: {
+          workspaceId: input.workspaceId,
+          productId,
+          retailerId,
+          sourceId,
+          hash: review.hash,
+          author: review.author,
+          rating: review.rating,
+          text: review.text,
+          language: detectReviewLanguage(review.text, language),
+          publishedAt: review.publishedAt ? new Date(review.publishedAt) : null,
+          firstSeenAt: capturedAt,
+        },
+      },
+      upsert: true,
+    },
+  }));
+  const result = await ProductReview.bulkWrite(ops, { ordered: false });
+  return result.upsertedCount;
+}
+
 /** Inserts a new version when the page copy changed; otherwise refreshes the current version in place. */
 export async function recordContentSnapshot(input: RecordContentInput): Promise<RecordContentResult> {
   await connectToDatabase();
   const { content, capturedAt } = input;
+  const { reviews, ...contentFields } = content;
   const hash = contentHash(content);
   const latest = await ProductContentSnapshot.findOne({ sourceId: input.sourceId })
     .sort({ capturedAt: -1 })
     .lean<ProductContentSnapshotDoc>();
+
+  await recordProductReviews({
+    workspaceId: input.workspaceId,
+    productId: input.productId,
+    retailerId: input.retailerId,
+    sourceId: input.sourceId,
+    reviews: reviews ?? [],
+    language: content.language,
+    capturedAt,
+  });
 
   if (latest && latest.contentHash === hash) {
     await ProductContentSnapshot.updateOne(
@@ -66,7 +124,7 @@ export async function recordContentSnapshot(input: RecordContentInput): Promise<
     retailerId: input.retailerId,
     sourceId: input.sourceId,
     contentHash: hash,
-    ...content,
+    ...contentFields,
     capturedAt,
     lastSeenAt: capturedAt,
   });

@@ -22,7 +22,7 @@ export function SignInForm({ nextPath }: { nextPath?: string }) {
           autoComplete="username"
           autoCapitalize="none"
           spellCheck={false}
-          defaultValue={ACCOUNT_ID}
+          placeholder={`${ACCOUNT_ID} or admin`}
           required
           className="h-10 font-mono"
         />

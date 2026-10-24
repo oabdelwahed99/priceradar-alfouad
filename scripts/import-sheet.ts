@@ -1,21 +1,38 @@
 /**
- * Price sheet import: pnpm import:sheet
+ * Price sheet import: pnpm import:sheet [hair|brand]
  *
- * Loads the products, store links and prices in scripts/data/hair-care-price-sheet.ts as real
+ * Loads products, store links and prices from scripts/data/*-price-sheet.ts as real
  * (refreshable) products. Safe to re-run: only new products and store links are added.
+ * Default sheet is hair. Use `pnpm import:sheet brand` for the Dermaelle/Bobai sheet.
  */
 import "./load-env";
 import mongoose from "mongoose";
 import { connectToDatabase } from "@/lib/db/mongoose";
-import { importPriceSheet } from "@/lib/services/imports/price-sheet-import.service";
+import { ensureBrands } from "@/lib/services/brands/brand.service";
+import { importPriceSheet, type PriceSheet } from "@/lib/services/imports/price-sheet-import.service";
 import { PRICE_POSITION_LABELS } from "@/lib/services/pricing/price-position";
 import { getCurrentWorkspaceId } from "@/lib/workspace";
+import { brandPriceSheet } from "./data/brand-price-sheet";
 import { hairCarePriceSheet } from "./data/hair-care-price-sheet";
 
+const SHEETS: Record<string, PriceSheet> = {
+  hair: hairCarePriceSheet,
+  brand: brandPriceSheet,
+};
+
 async function main() {
+  const sheetName = (process.argv[2] ?? "hair").toLowerCase();
+  const sheet = SHEETS[sheetName];
+  if (!sheet) {
+    console.error(`Unknown sheet "${sheetName}". Use: ${Object.keys(SHEETS).join(", ")}`);
+    process.exitCode = 1;
+    return;
+  }
+
   await connectToDatabase();
   const workspaceId = getCurrentWorkspaceId();
-  const reports = await importPriceSheet(workspaceId, hairCarePriceSheet);
+  if (sheetName === "brand") await ensureBrands(workspaceId);
+  const reports = await importPriceSheet(workspaceId, sheet);
 
   for (const r of reports) {
     const position = r.position ? PRICE_POSITION_LABELS[r.position] : "Not enough data";
@@ -32,7 +49,7 @@ async function main() {
   const created = reports.filter((r) => r.created).length;
   const skipped = reports.reduce((n, r) => n + r.skipped.length, 0);
   console.log(
-    `\nImported ${reports.length} products (${created} new) into workspace "${workspaceId}". ${skipped} cells skipped.`,
+    `\nImported ${reports.length} products (${created} new) from "${sheetName}" into workspace "${workspaceId}". ${skipped} cells skipped.`,
   );
 }
 

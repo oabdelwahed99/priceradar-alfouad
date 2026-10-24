@@ -127,7 +127,15 @@ describe("extractPageContent", () => {
       rating: null,
       images: { total: 0, withAlt: 0 },
       language: null,
+      reviews: [],
     });
+  });
+
+  it("attaches extracted reviews from JSON-LD", () => {
+    const html = `<html><head><script type="application/ld+json">
+      {"@type":"Product","name":"X","review":[{"@type":"Review","author":"A","reviewBody":"Great soft hair and lovely scent after washing.","reviewRating":{"ratingValue":5}}]}
+    </script></head><body><h1>X</h1></body></html>`;
+    expect(extract(html).reviews).toHaveLength(1);
   });
 });
 
