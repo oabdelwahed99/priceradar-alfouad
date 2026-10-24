@@ -4,7 +4,9 @@ import { AlertTriangle, CheckCircle2, Clock, ExternalLink, Loader2, RotateCw } f
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { StoreLabel } from "@/components/matrix/store-logo";
 import { GapValue } from "@/components/pricing/position-badge";
+import { tryNormalizeDomain } from "@/lib/services/retailers/domain";
 import { cn } from "@/lib/utils";
 import type { Availability } from "@/types";
 import type { CompetitorComparisonRowDTO } from "@/types/dto";
@@ -73,10 +75,12 @@ export function CompetitorTable({
             <TableRow key={row.sourceId} className={cn(row.isOwnStore && "bg-muted/40")}>
               <TableCell className="max-w-72">
                 <div className="flex flex-col gap-0.5">
-                  <span className="font-medium">
-                    {row.isOwnStore ? (row.isBrandStore ? "Official store" : "My Store") : row.retailerName}
-                    {row.isOwnStore ? <span className="ml-1.5 text-xs text-muted-foreground">({row.retailerName})</span> : null}
-                  </span>
+                  <StoreLabel name={row.retailerName} domain={tryNormalizeDomain(row.url)}>
+                    <span className="font-medium">
+                      {row.isOwnStore ? (row.isBrandStore ? "Official store" : "My Store") : row.retailerName}
+                      {row.isOwnStore ? <span className="ml-1.5 text-xs font-normal text-muted-foreground">({row.retailerName})</span> : null}
+                    </span>
+                  </StoreLabel>
                   <StatusLine row={row} />
                   {row.exclusion ? <span className="text-xs text-muted-foreground">{row.exclusion}</span> : null}
                   {row.note ? <span className="text-xs text-muted-foreground">{row.note}</span> : null}

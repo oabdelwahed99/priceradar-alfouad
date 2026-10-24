@@ -5,6 +5,7 @@ import { Product, ProductSource, Retailer, type ProductSourceDoc, type RetailerD
 import type { ContentOverviewDTO, ContentOverviewRowDTO, ProductContentAnalysisDTO } from "@/types/dto";
 import { escapeRegex, type LeanProduct } from "../products/product.service";
 import { buildContentAnalysis, missingFacts } from "./content-analysis";
+import { tryNormalizeDomain } from "../retailers/domain";
 import { getLatestContentBySource, toContentPageInput } from "./content.service";
 
 export const CONTENT_OVERVIEW_MAX_PRODUCTS = 500;
@@ -37,7 +38,13 @@ export function summarizeContentRow(product: OverviewProduct, analysis: ProductC
     missingFacts: missingFacts(analysis.attributes, analysis.competitorPagesCaptured).map((a) => a.label),
     descriptionWords: analysis.benchmark.own?.descriptionWords ?? null,
     competitorMedianWords: analysis.benchmark.competitorMedian.descriptionWords,
-    lastCompetitorChange: lastChange ? { retailerName: lastChange.retailerName, at: lastChange.contentSince! } : null,
+    lastCompetitorChange: lastChange
+      ? {
+          retailerName: lastChange.retailerName,
+          retailerDomain: tryNormalizeDomain(lastChange.url) ?? "",
+          at: lastChange.contentSince!,
+        }
+      : null,
   };
 }
 

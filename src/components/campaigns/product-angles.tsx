@@ -1,14 +1,15 @@
 import Link from "next/link";
+import { StoreLabel } from "@/components/matrix/store-logo";
 import type { CampaignProductAngleDTO, CampaignQuoteDTO } from "@/types/dto";
 
 function Quote({ quote }: { quote: CampaignQuoteDTO }) {
   return (
     <li className="text-sm leading-relaxed">
       <p dir="auto">“{quote.text}”</p>
-      <p className="mt-1 text-xs text-muted-foreground">
-        {quote.retailerName}
-        {quote.official ? " · Official store" : ""}
-        {quote.rating != null ? ` · ${quote.rating}/5` : ""}
+      <p className="mt-1 flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
+        <StoreLabel name={quote.retailerName} domain={quote.retailerDomain} size="sm" className="text-xs font-normal" />
+        {quote.official ? <span>· Official store</span> : null}
+        {quote.rating != null ? <span>· {quote.rating}/5</span> : null}
       </p>
     </li>
   );

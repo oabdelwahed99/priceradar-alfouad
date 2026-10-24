@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { connection } from "next/server";
 import { ArrowRight, Tags } from "lucide-react";
+import { StoreLogo } from "@/components/matrix/store-logo";
 import { DatabaseNotice } from "@/components/layout/database-notice";
 import { EmptyState } from "@/components/layout/empty-state";
 import { PageHeader } from "@/components/layout/page-header";
@@ -41,6 +42,7 @@ export default async function BrandsPage() {
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <CardTitle className="flex items-center gap-2">
+                      <StoreLogo name={brand.name} domain={brand.officialDomain} size="sm" />
                       {brand.name}
                       {brand.isFocus ? (
                         <span className="rounded bg-primary/10 px-1.5 py-0.5 text-xs font-medium text-primary">Focus</span>

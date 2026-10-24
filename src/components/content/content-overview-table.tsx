@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SortHeader, type SortOrder } from "@/components/layout/sort-header";
+import { StoreLogo } from "@/components/matrix/store-logo";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CONTENT_SCORE_THRESHOLDS } from "@/lib/services/content/content-overview.service";
 import { cn } from "@/lib/utils";
@@ -136,7 +137,10 @@ export function ContentOverviewTable({
                   <p className="text-sm" title={formatDateTime(r.lastCompetitorChange.at)} suppressHydrationWarning>
                     {formatRelativeTime(r.lastCompetitorChange.at)}
                   </p>
-                  <p className="truncate text-xs text-muted-foreground">{r.lastCompetitorChange.retailerName}</p>
+                  <p className="flex items-center gap-1 truncate text-xs text-muted-foreground">
+                    <StoreLogo name={r.lastCompetitorChange.retailerName} domain={r.lastCompetitorChange.retailerDomain} size="sm" />
+                    <span className="truncate">{r.lastCompetitorChange.retailerName}</span>
+                  </p>
                 </div>
               ) : (
                 <span className="text-sm text-muted-foreground">No changes</span>

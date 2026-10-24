@@ -35,6 +35,28 @@ function insightId(type: CampaignInsightTypeDTO, parts: string[]): string {
   return `${type}:${parts.join(":")}`;
 }
 
+function storeRefs(stores: { retailerId: string; retailerName: string; domain: string }[]) {
+  return {
+    retailerIds: stores.map((store) => store.retailerId),
+    retailerNames: stores.map((store) => store.retailerName),
+    retailerDomains: stores.map((store) => store.domain),
+  };
+}
+
+function reviewRefs(reviews: CampaignReviewInput[]) {
+  const seen = new Map<string, { retailerId: string; retailerName: string; domain: string }>();
+  for (const review of reviews) {
+    if (!seen.has(review.retailerId)) {
+      seen.set(review.retailerId, {
+        retailerId: review.retailerId,
+        retailerName: review.retailerName,
+        domain: review.retailerDomain ?? "",
+      });
+    }
+  }
+  return storeRefs([...seen.values()]);
+}
+
 function competitorWeaknesses(stores: StoreReviewSummaryDTO[]): CampaignInsightDTO[] {
   const own = stores.find((s) => s.isOwnStore);
   const competitors = stores.filter((s) => !s.isOwnStore);
@@ -68,8 +90,7 @@ function competitorWeaknesses(stores: StoreReviewSummaryDTO[]): CampaignInsightD
       priority: 80 + weakCompetitors.length * 5 + Math.round(Math.abs(ownTheme?.netSentiment ?? 0) * 10),
       themeId: themeId as ReviewThemeIdDTO,
       themeLabel: label,
-      retailerIds: weakCompetitors.map((c) => c.retailerId),
-      retailerNames: weakCompetitors.map((c) => c.retailerName),
+      ...storeRefs(weakCompetitors),
       productIds: [],
       productNames: [],
       sampleSnippets: [],
@@ -93,8 +114,7 @@ function ourWeaknesses(stores: StoreReviewSummaryDTO[]): CampaignInsightDTO[] {
       priority: 70 + t.negative * 3,
       themeId: t.themeId as ReviewThemeIdDTO,
       themeLabel: t.label,
-      retailerIds: [own.retailerId],
-      retailerNames: [own.retailerName],
+      ...storeRefs([own]),
       productIds: [],
       productNames: [],
       sampleSnippets: [],
@@ -124,8 +144,7 @@ function strengths(stores: StoreReviewSummaryDTO[], productGaps: ProductReviewGa
         priority: 55 + t.positive * 2,
         themeId: t.themeId as ReviewThemeIdDTO,
         themeLabel: t.label,
-        retailerIds: [own.retailerId],
-        retailerNames: [own.retailerName],
+        ...storeRefs([own]),
         productIds: [],
         productNames: [],
         sampleSnippets: [],
@@ -213,8 +232,7 @@ function priceValueInsights(
       priority: 65 + weakOnPrice.length * 4,
       themeId: "price",
       themeLabel: REVIEW_THEME_LABELS.price,
-      retailerIds: weakOnPrice.map((c) => c.retailerId),
-      retailerNames: weakOnPrice.map((c) => c.retailerName),
+      ...storeRefs(weakOnPrice),
       productIds: cheaperProducts.slice(0, 5).map((p) => p.productId),
       productNames: cheaperProducts.slice(0, 5).map((p) => p.productName),
       sampleSnippets: [],
@@ -272,6 +290,7 @@ export interface CampaignReviewInput {
   brand: string;
   retailerId: string;
   retailerName: string;
+  retailerDomain?: string;
   /** Official shop for this product's brand. */
   isOfficial: boolean;
   rating: number | null;
@@ -312,6 +331,7 @@ function toQuote(review: CampaignReviewInput): CampaignQuoteDTO {
   return {
     text: clipQuote(review.text),
     retailerName: review.retailerName,
+    retailerDomain: review.retailerDomain,
     rating: review.rating,
     official: review.isOfficial,
   };
@@ -443,8 +463,7 @@ export function buildBrandCampaign(input: {
           priority: 60 + positive * 3,
           themeId,
           themeLabel: label,
-          retailerIds: [...new Set(themed.map((r) => r.retailerId))],
-          retailerNames: [...new Set(themed.map((r) => r.retailerName))],
+          ...reviewRefs(themed),
           productIds: uniqueProducts(themed).ids,
           productNames: uniqueProducts(themed).names,
           sampleSnippets: snippetsFrom(themed.filter((r) => r.sentiment === "positive")),
@@ -460,8 +479,7 @@ export function buildBrandCampaign(input: {
           priority: 72 + negative * 4,
           themeId,
           themeLabel: label,
-          retailerIds: [...new Set(themed.map((r) => r.retailerId))],
-          retailerNames: [...new Set(themed.map((r) => r.retailerName))],
+          ...reviewRefs(themed),
           productIds: uniqueProducts(themed).ids,
           productNames: uniqueProducts(themed).names,
           sampleSnippets: snippetsFrom(themed.filter((r) => r.sentiment === "negative")),
@@ -491,8 +509,7 @@ export function buildBrandCampaign(input: {
         priority: 78 + theirsNegative.length * 3,
         themeId,
         themeLabel: label,
-        retailerIds: [...new Set(theirsNegative.map((r) => r.retailerId))],
-        retailerNames: [...new Set(theirsNegative.map((r) => r.retailerName))],
+        ...reviewRefs(theirsNegative),
         productIds: uniqueProducts(ours, 4).ids,
         productNames: uniqueProducts(ours, 4).names,
         sampleSnippets: snippetsFrom(ours.filter((r) => r.sentiment === "positive")),
@@ -521,8 +538,7 @@ export function buildBrandCampaign(input: {
       priority: 68 + rows.length * 5,
       themeId: rows[0]?.themes[0] ?? "delivery",
       themeLabel: rows[0] ? REVIEW_THEME_LABELS[rows[0].themes[0]!] : null,
-      retailerIds: [retailerId],
-      retailerNames: [name],
+      ...storeRefs([{ retailerId, retailerName: name, domain: rows[0]?.retailerDomain ?? "" }]),
       productIds: [...new Set(rows.map((r) => r.productId))],
       productNames: [...new Set(rows.map((r) => r.productName))],
       sampleSnippets: snippetsFrom(rows),

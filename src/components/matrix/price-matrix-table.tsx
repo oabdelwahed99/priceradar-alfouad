@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AlertTriangle, Clock } from "lucide-react";
+import { StoreLogo } from "@/components/matrix/store-logo";
 import { GapValue, PositionBadge } from "@/components/pricing/position-badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
@@ -50,7 +51,7 @@ function PriceCell({
 }) {
   if (!cell) {
     return (
-      <span className="block px-2 py-1 text-muted-foreground/60" title={`Not tracked at ${store.name}`}>
+      <span className="block px-2 py-1 text-center text-muted-foreground/60" title={`Not tracked at ${store.name}`}>
         —
       </span>
     );
@@ -60,13 +61,13 @@ function PriceCell({
   let body;
   if (cell.state === "pending") {
     body = (
-      <span className="flex items-center justify-end gap-1 text-xs text-muted-foreground">
+      <span className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
         <Clock className="size-3.5" /> Not checked
       </span>
     );
   } else if (cell.state === "failed") {
     body = (
-      <span className="flex items-center justify-end gap-1 text-xs text-amber-700 dark:text-amber-400">
+      <span className="flex items-center justify-center gap-1 text-xs text-amber-700 dark:text-amber-400">
         <AlertTriangle className="size-3.5" /> Failed
       </span>
     );
@@ -83,7 +84,7 @@ function PriceCell({
     const stale = cell.state === "stale";
     body = (
       <>
-        <span className={cn("flex items-center justify-end gap-1 font-medium tabular-nums", stale && "text-muted-foreground")}>
+        <span className={cn("flex items-center justify-center gap-1 font-medium tabular-nums", stale && "text-muted-foreground")}>
           {stale ? <AlertTriangle className="size-3.5 text-amber-600 dark:text-amber-400" aria-label="Last check failed" /> : null}
           {formatAmount(cell.price)}
           {currencySuffix}
@@ -104,7 +105,7 @@ function PriceCell({
       rel="noopener noreferrer nofollow"
       title={cellTitle(cell, store.name)}
       className={cn(
-        "flex min-h-11 flex-col items-end justify-center rounded-md px-2 py-1 transition-colors hover:bg-muted",
+        "flex min-h-11 flex-col items-center justify-center rounded-md px-2 py-1 text-center transition-colors hover:bg-muted",
         cell.isLowest && "bg-emerald-500/10 ring-1 ring-emerald-500/30 ring-inset hover:bg-emerald-500/15",
       )}
     >
@@ -119,20 +120,23 @@ export function PriceMatrixTable({ columns, rows }: { columns: PriceMatrixColumn
     <Table>
       <TableHeader>
         <TableRow className="hover:bg-transparent">
-          <TableHead className="sticky left-0 z-10 min-w-52 bg-card">Product</TableHead>
+          <TableHead className="sticky left-0 z-10 h-auto min-w-52 align-bottom bg-card text-left">Product</TableHead>
           {columns.map((c) => (
-            <TableHead key={c.retailerId} className={cn("text-right", c.isOwnStore && "bg-muted/60")} title={c.domain}>
-              <span className="block">{c.name}</span>
-              <span className="block text-xs font-normal text-muted-foreground">
-                {c.isOwnStore
-                  ? c.isBrandStore || vsOfficial
-                    ? "Official price"
-                    : "Your price"
-                  : `${c.productCount} product${c.productCount === 1 ? "" : "s"}`}
+            <TableHead key={c.retailerId} className={cn("h-auto align-bottom text-center", c.isOwnStore && "bg-muted/60")} title={c.domain}>
+              <span className="flex flex-col items-center gap-1.5 py-1.5">
+                <StoreLogo name={c.name} domain={c.domain} />
+                <span className="block">{c.name}</span>
+                <span className="block text-xs font-normal text-muted-foreground">
+                  {c.isOwnStore
+                    ? c.isBrandStore || vsOfficial
+                      ? "Official price"
+                      : "Your price"
+                    : `${c.productCount} product${c.productCount === 1 ? "" : "s"}`}
+                </span>
               </span>
             </TableHead>
           ))}
-          <TableHead>
+          <TableHead className="h-auto align-bottom text-center">
             <span className="block">vs Market</span>
             <span className="block text-xs font-normal text-muted-foreground">Gap to median</span>
           </TableHead>
@@ -151,11 +155,11 @@ export function PriceMatrixTable({ columns, rows }: { columns: PriceMatrixColumn
               </span>
             </TableCell>
             {columns.map((c) => (
-              <TableCell key={c.retailerId} className={cn("p-1", c.isOwnStore && "bg-muted/40")}>
+              <TableCell key={c.retailerId} className={cn("p-1 text-center", c.isOwnStore && "bg-muted/40")}>
                 <PriceCell cell={row.cells[c.retailerId]} store={c} rowCurrency={row.currency} vsOfficial={vsOfficial} />
               </TableCell>
             ))}
-            <TableCell>
+            <TableCell className="text-center">
               <PositionBadge position={row.analysis?.position ?? null} />
               {row.analysis?.marketMedian !== null && row.analysis?.marketMedian !== undefined ? (
                 <span className="mt-0.5 block text-xs text-muted-foreground">

@@ -66,6 +66,7 @@ export async function getCampaignsOverview(
       brand,
       retailerId: String(review.retailerId),
       retailerName: retailer.name,
+      retailerDomain: retailer.domain,
       isOfficial,
       rating: review.rating ?? null,
       text: review.text,

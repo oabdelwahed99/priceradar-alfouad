@@ -3,6 +3,7 @@
 import { useMemo, useState, type Key } from "react";
 import { Loader2 } from "lucide-react";
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { StoreLogo } from "@/components/matrix/store-logo";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { apiFetch } from "@/lib/api/client";
 import { HISTORY_RANGES, type HistoryRange } from "@/types";
@@ -142,11 +143,17 @@ export function PriceHistoryChart({
                 contentStyle={{ borderRadius: 8, fontSize: 12 }}
               />
               <Legend
-                formatter={(value) => {
-                  const s = series.find((x) => x.sourceId === value);
-                  return s ? (s.isOwnStore ? "My Store" : s.retailerName) : value;
-                }}
-                wrapperStyle={{ fontSize: 12 }}
+                content={() => (
+                  <ul className="flex flex-wrap justify-center gap-x-4 gap-y-1.5 pt-2 text-xs">
+                    {visible.map((s, i) => (
+                      <li key={s.sourceId} className="flex items-center gap-1.5">
+                        <span className="size-2 rounded-full" style={{ background: colorFor(s, i) }} />
+                        <StoreLogo name={s.retailerName} domain={s.domain} size="sm" />
+                        {s.isOwnStore ? "My Store" : s.retailerName}
+                      </li>
+                    ))}
+                  </ul>
+                )}
               />
               {visible.map((s, i) => (
                 <Line

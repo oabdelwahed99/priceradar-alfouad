@@ -1,3 +1,4 @@
+import { StoreLabel } from "@/components/matrix/store-logo";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import type { StoreReviewSummaryDTO } from "@/types/dto";
@@ -75,13 +76,15 @@ export function StoreSentimentTable({ stores }: { stores: StoreReviewSummaryDTO[
         {stores.map((store) => (
           <TableRow key={store.retailerId} className={cn(store.isOwnStore && "bg-muted/40")}>
             <TableCell>
-              <div className="font-medium">
-                {store.retailerName}
-                {store.isOwnStore ? (
-                  <span className="ml-1.5 text-xs font-normal text-muted-foreground">You</span>
-                ) : null}
-              </div>
-              <div className="text-xs text-muted-foreground">{store.domain}</div>
+              <StoreLabel name={store.retailerName} domain={store.domain}>
+                <span className="block font-medium">
+                  {store.retailerName}
+                  {store.isOwnStore ? (
+                    <span className="ml-1.5 text-xs font-normal text-muted-foreground">You</span>
+                  ) : null}
+                </span>
+                <span className="block text-xs text-muted-foreground">{store.domain}</span>
+              </StoreLabel>
             </TableCell>
             <TableCell className="text-right tabular-nums">{store.reviewCount}</TableCell>
             <TableCell className="text-right tabular-nums">

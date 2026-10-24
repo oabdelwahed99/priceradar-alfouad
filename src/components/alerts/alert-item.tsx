@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { StoreLogo } from "@/components/matrix/store-logo";
 import { cn } from "@/lib/utils";
 import type { AlertDTO } from "@/types/dto";
 import { formatDateTime, formatRelativeTime } from "@/utils/format";
@@ -41,7 +42,12 @@ export function AlertItem({ alert, compact = false }: { alert: AlertDTO; compact
             ) : (
               "Deleted product"
             )}
-            {alert.retailerName ? <span className="text-muted-foreground"> · {alert.retailerName}</span> : null}
+            {alert.retailerName ? (
+              <span className="inline-flex items-center gap-1 text-muted-foreground">
+                · <StoreLogo name={alert.retailerName} domain={alert.retailerDomain} size="sm" />
+                {alert.retailerName}
+              </span>
+            ) : null}
           </p>
           <p className="text-sm text-muted-foreground">{alert.message}</p>
         </div>

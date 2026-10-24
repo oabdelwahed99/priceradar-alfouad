@@ -1,4 +1,6 @@
 import { ChevronRight, ExternalLink, Star } from "lucide-react";
+import { StoreLabel } from "@/components/matrix/store-logo";
+import { tryNormalizeDomain } from "@/lib/services/retailers/domain";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { SIMILARITY_THRESHOLDS } from "@/lib/services/content/content-analysis";
@@ -59,7 +61,9 @@ function PageDetails({ page }: { page: ContentPageDTO }) {
     <details className="group rounded-lg border">
       <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm font-medium [&::-webkit-details-marker]:hidden">
         <ChevronRight className="size-4 shrink-0 transition-transform group-open:rotate-90" />
-        <span className="truncate">{storeLabel(page)}</span>
+        <StoreLabel name={page.retailerName} domain={tryNormalizeDomain(page.url)} className="min-w-0">
+          <span className="truncate">{storeLabel(page)}</span>
+        </StoreLabel>
         {page.versionCount > 1 ? (
           <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 text-xs font-normal text-muted-foreground">
             {page.versionCount} versions
@@ -144,7 +148,9 @@ export function ContentPages({ pages }: { pages: ContentPageDTO[] }) {
               <TableRow key={p.sourceId} className={cn(p.isOwnStore && "bg-muted/40")}>
                 <TableCell className="max-w-72">
                   <div className="flex flex-col gap-0.5">
-                    <span className="font-medium">{storeLabel(p)}</span>
+                    <StoreLabel name={p.retailerName} domain={tryNormalizeDomain(p.url)}>
+                      <span className="font-medium">{storeLabel(p)}</span>
+                    </StoreLabel>
                     <span className="truncate text-xs text-muted-foreground" dir="auto" title={p.title ?? undefined}>
                       {p.title ?? "No title"}
                     </span>

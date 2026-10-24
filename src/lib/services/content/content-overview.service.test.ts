@@ -72,7 +72,11 @@ describe("summarizeContentRow", () => {
     expect(summary.topMissingKeywords).toHaveLength(3);
     expect(summary.missingFacts).toEqual(expect.arrayContaining(["Ingredients list", "Halal"]));
     expect(summary.descriptionWords).toBe(2);
-    expect(summary.lastCompetitorChange).toEqual({ retailerName: "Store B", at: "2026-09-11T00:00:00.000Z" });
+    expect(summary.lastCompetitorChange).toEqual({
+      retailerName: "Store B",
+      retailerDomain: "store1.example",
+      at: "2026-09-11T00:00:00.000Z",
+    });
   });
 });
 

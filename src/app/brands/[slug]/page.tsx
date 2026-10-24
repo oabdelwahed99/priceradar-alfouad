@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { ArrowLeft } from "lucide-react";
+import { StoreLabel, StoreLogo } from "@/components/matrix/store-logo";
 import { DatabaseNotice } from "@/components/layout/database-notice";
 import { PageHeader } from "@/components/layout/page-header";
 import { PriceMatrixTable } from "@/components/matrix/price-matrix-table";
@@ -44,6 +45,7 @@ export default async function BrandDetailPage(props: PageProps<"/brands/[slug]">
       <PageHeader
         title={
           <span className="flex items-center gap-2">
+            <StoreLogo name={brand.name} domain={brand.officialDomain} />
             {brand.name}
             {brand.isFocus ? (
               <span className="rounded bg-primary/10 px-1.5 py-0.5 text-xs font-medium text-primary">Focus</span>
@@ -92,8 +94,10 @@ export default async function BrandDetailPage(props: PageProps<"/brands/[slug]">
                   {brand.storeCompliance.map((row) => (
                     <TableRow key={row.retailerId}>
                       <TableCell>
-                        <div className="font-medium">{row.name}</div>
-                        <div className="font-mono text-xs text-muted-foreground">{row.domain}</div>
+                        <StoreLabel name={row.name} domain={row.domain}>
+                          <span className="block font-medium">{row.name}</span>
+                          <span className="block font-mono text-xs text-muted-foreground">{row.domain}</span>
+                        </StoreLabel>
                       </TableCell>
                       <TableCell className="text-right tabular-nums">{row.listings}</TableCell>
                       <TableCell className="text-right tabular-nums text-rose-700 dark:text-rose-400">

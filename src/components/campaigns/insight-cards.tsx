@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { StoreLabel } from "@/components/matrix/store-logo";
 import { cn } from "@/lib/utils";
 import type { CampaignInsightDTO, CampaignInsightTypeDTO } from "@/types/dto";
 
@@ -56,10 +57,14 @@ function InsightCard({ insight }: { insight: CampaignInsightDTO }) {
       {insight.reviewCount ? (
         <p className="text-xs text-muted-foreground">
           Based on {insight.reviewCount} review{insight.reviewCount === 1 ? "" : "s"}
-          {insight.retailerNames.length > 0 ? ` · ${insight.retailerNames.join(", ")}` : ""}
         </p>
-      ) : insight.retailerNames.length > 0 ? (
-        <p className="text-xs text-muted-foreground">Stores: {insight.retailerNames.join(", ")}</p>
+      ) : null}
+      {insight.retailerNames.length > 0 ? (
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+          {insight.retailerNames.map((name, index) => (
+            <StoreLabel key={`${insight.id}:${name}`} name={name} domain={insight.retailerDomains?.[index]} size="sm" className="text-xs" />
+          ))}
+        </div>
       ) : null}
       {insight.productNames.length > 0 ? (
         <div className="flex flex-wrap gap-1.5 text-xs">

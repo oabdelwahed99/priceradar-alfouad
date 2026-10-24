@@ -452,7 +452,7 @@ function buildHistorySeries(
   const series = new Map<string, HistorySeriesDTO>(
     sources.map(({ source, retailer }) => [
       String(source._id),
-      { sourceId: String(source._id), retailerName: retailer.name, isOwnStore: Boolean(source.isOwnStore), points: [] },
+      { sourceId: String(source._id), retailerName: retailer.name, domain: retailer.domain, isOwnStore: Boolean(source.isOwnStore), points: [] },
     ]),
   );
   for (const obs of observations) {

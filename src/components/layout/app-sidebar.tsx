@@ -10,11 +10,11 @@ import {
   Megaphone,
   MessageSquareText,
   Package,
-  Radar,
   Store,
   Tags,
   Target,
 } from "lucide-react";
+import { BrandMark } from "@/components/brand-mark";
 import { signOut } from "@/lib/auth/actions";
 import type { AccountSession } from "@/lib/auth/constants";
 import { Button } from "@/components/ui/button";
@@ -39,9 +39,7 @@ export function AppSidebar({ account }: { account: AccountSession | null }) {
   return (
     <aside className="sticky top-0 hidden h-svh w-60 shrink-0 flex-col self-start overflow-hidden border-r bg-sidebar md:flex">
       <div className="flex h-14 shrink-0 items-center gap-2 border-b px-5">
-        <div className="flex size-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
-          <Radar className="size-4" />
-        </div>
+        <BrandMark />
         <span className="font-semibold tracking-tight">Price Radar</span>
       </div>
       <nav className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto p-3">

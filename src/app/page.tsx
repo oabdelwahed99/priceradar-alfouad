@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { ArrowRight, Bell, FileSearch, Grid3x3, PackageX, Radar, Scale } from "lucide-react";
+import { ArrowRight, Bell, FileSearch, Grid3x3, PackageX, Scale } from "lucide-react";
+import { BrandMark } from "@/components/brand-mark";
 import { SiteHeader } from "@/components/marketing/site-header";
 import { PositionBadge } from "@/components/pricing/position-badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -104,9 +105,7 @@ export default async function HomePage() {
                   <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Sample reading</p>
                   <p className="mt-1 font-medium">Argan oil shampoo</p>
                 </div>
-                <span className="flex size-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
-                  <Radar className="size-4" />
-                </span>
+                <BrandMark className="size-8" />
               </div>
               <dl className="mt-5 grid grid-cols-2 gap-4 text-sm">
                 <div>

@@ -1,4 +1,5 @@
 import { Pencil } from "lucide-react";
+import { StoreLabel } from "@/components/matrix/store-logo";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
@@ -34,11 +35,13 @@ export function RetailersTable({ retailers }: { retailers: RetailerWithStatsDTO[
           const status = STATUS_META[r.status];
           return (
             <TableRow key={r.id}>
-              <TableCell className="font-medium">
-                {r.name}
-                {r.isOwnStore ? (
-                  <span className="ml-2 rounded bg-primary/10 px-1.5 py-0.5 text-xs font-medium text-primary">My store</span>
-                ) : null}
+              <TableCell>
+                <StoreLabel name={r.name} domain={r.domain}>
+                  <span className="font-medium">{r.name}</span>
+                  {r.isOwnStore ? (
+                    <span className="ml-2 rounded bg-primary/10 px-1.5 py-0.5 text-xs font-medium text-primary">My store</span>
+                  ) : null}
+                </StoreLabel>
               </TableCell>
               <TableCell>
                 <a

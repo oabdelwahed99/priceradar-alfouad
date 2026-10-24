@@ -1,3 +1,4 @@
+import { StoreLogo } from "@/components/matrix/store-logo";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import type { ReviewThemeStatsDTO, StoreReviewSummaryDTO } from "@/types/dto";
@@ -25,9 +26,10 @@ export function ThemeBreakdown({
           <TableHead className="text-right">−</TableHead>
           <TableHead className="text-right">Net</TableHead>
           {topStores.map((s) => (
-            <TableHead key={s.retailerId} className="text-right">
-              <span className="line-clamp-1 max-w-20" title={s.retailerName}>
-                {s.isOwnStore ? "You" : s.retailerName}
+            <TableHead key={s.retailerId} className="text-center">
+              <span className="flex flex-col items-center gap-1" title={s.retailerName}>
+                <StoreLogo name={s.retailerName} domain={s.domain} size="sm" />
+                <span className="line-clamp-1 max-w-20">{s.isOwnStore ? "You" : s.retailerName}</span>
               </span>
             </TableHead>
           ))}
@@ -57,7 +59,7 @@ export function ThemeBreakdown({
             {topStores.map((store) => {
               const local = store.themes.find((t) => t.themeId === theme.themeId);
               return (
-                <TableCell key={store.retailerId} className="text-right tabular-nums text-muted-foreground">
+                <TableCell key={store.retailerId} className="text-center tabular-nums text-muted-foreground">
                   {local ? local.mentions : "—"}
                 </TableCell>
               );

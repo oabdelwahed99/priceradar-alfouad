@@ -33,7 +33,7 @@ type LeanReview = ProductReviewDoc & { _id: Types.ObjectId };
 function toListItem(
   review: LeanReview,
   product: LeanProduct | undefined,
-  retailer: Pick<RetailerDoc, "_id" | "name" | "isOwnStore"> | undefined,
+  retailer: Pick<RetailerDoc, "_id" | "name" | "domain" | "isOwnStore"> | undefined,
 ): ReviewListItemDTO {
   const analyzable: AnalyzableReview = { rating: review.rating ?? null, text: review.text };
   return {
@@ -43,6 +43,7 @@ function toListItem(
     brand: product?.brand ?? null,
     retailerId: String(review.retailerId),
     retailerName: retailer?.name ?? "Unknown store",
+    retailerDomain: retailer?.domain ?? "",
     isOwnStore: Boolean(retailer?.isOwnStore),
     author: review.author ?? null,
     rating: review.rating ?? null,

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { StoreLabel } from "@/components/matrix/store-logo";
 import { cn } from "@/lib/utils";
 import { REVIEW_THEME_LABELS } from "@/lib/services/reviews/review-analysis";
 import type { ReviewListItemDTO, ReviewSentimentDTO, ReviewThemeIdDTO } from "@/types/dto";
@@ -30,7 +31,7 @@ export function ReviewList({ reviews }: { reviews: ReviewListItemDTO[] }) {
             </span>
             <Stars rating={review.rating} />
             <span className="text-muted-foreground">·</span>
-            <span className="font-medium">{review.retailerName}</span>
+            <StoreLabel name={review.retailerName} domain={review.retailerDomain} size="sm" />
             {review.isOwnStore ? <span className="text-xs text-muted-foreground">(you)</span> : null}
             <span className="text-muted-foreground">·</span>
             <Link href={`/products/${review.productId}`} className="hover:underline">

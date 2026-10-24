@@ -45,12 +45,12 @@ export async function listAlerts(workspaceId: string, query: ListAlertsQuery): P
 
   const [products, retailers] = await Promise.all([
     Product.find({ _id: { $in: alerts.map((a) => a.productId) } }, { name: 1 }).lean<Pick<ProductDoc, "_id" | "name">[]>(),
-    Retailer.find({ _id: { $in: alerts.flatMap((a) => (a.retailerId ? [a.retailerId] : [])) } }, { name: 1 }).lean<
-      Pick<RetailerDoc, "_id" | "name">[]
+    Retailer.find({ _id: { $in: alerts.flatMap((a) => (a.retailerId ? [a.retailerId] : [])) } }, { name: 1, domain: 1 }).lean<
+      Pick<RetailerDoc, "_id" | "name" | "domain">[]
     >(),
   ]);
   const productNames = new Map(products.map((p) => [String(p._id), p.name]));
-  const retailerNames = new Map(retailers.map((r) => [String(r._id), r.name]));
+  const retailerById = new Map(retailers.map((r) => [String(r._id), r]));
 
   return {
     items: alerts.map((a) => ({
@@ -61,7 +61,8 @@ export async function listAlerts(workspaceId: string, query: ListAlertsQuery): P
       message: a.message,
       productId: String(a.productId),
       productName: productNames.get(String(a.productId)) ?? null,
-      retailerName: a.retailerId ? (retailerNames.get(String(a.retailerId)) ?? null) : null,
+      retailerName: a.retailerId ? (retailerById.get(String(a.retailerId))?.name ?? null) : null,
+      retailerDomain: a.retailerId ? (retailerById.get(String(a.retailerId))?.domain ?? null) : null,
       payload: (a.payload ?? {}) as Record<string, unknown>,
       createdAt: toIso(a.createdAt)!,
     })),

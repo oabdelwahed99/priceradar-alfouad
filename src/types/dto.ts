@@ -172,6 +172,7 @@ export interface HistoryPointDTO {
 export interface HistorySeriesDTO {
   sourceId: string;
   retailerName: string;
+  domain: string;
   isOwnStore: boolean;
   points: { scrapedAt: string; price: number }[];
 }
@@ -185,6 +186,7 @@ export interface AlertDTO {
   productId: string;
   productName: string | null;
   retailerName: string | null;
+  retailerDomain: string | null;
   payload: Record<string, unknown>;
   createdAt: string;
 }
@@ -408,7 +410,7 @@ export interface ContentOverviewRowDTO {
   descriptionWords: number | null;
   competitorMedianWords: number | null;
   /** Most recent competitor rewrite of this product's page. */
-  lastCompetitorChange: { retailerName: string; at: string } | null;
+  lastCompetitorChange: { retailerName: string; retailerDomain?: string; at: string } | null;
 }
 
 export interface ContentOverviewDTO extends PaginatedDTO<ContentOverviewRowDTO> {
@@ -616,6 +618,7 @@ export interface ReviewListItemDTO {
   brand: string | null;
   retailerId: string;
   retailerName: string;
+  retailerDomain: string;
   isOwnStore: boolean;
   author: string | null;
   rating: number | null;
@@ -666,6 +669,8 @@ export interface CampaignInsightDTO {
   themeLabel: string | null;
   retailerIds: string[];
   retailerNames: string[];
+  /** Parallel to retailerNames. Missing entries fall back to initials. */
+  retailerDomains?: string[];
   productIds: string[];
   productNames: string[];
   sampleSnippets: string[];
@@ -676,6 +681,7 @@ export interface CampaignInsightDTO {
 export interface CampaignQuoteDTO {
   text: string;
   retailerName: string;
+  retailerDomain?: string;
   rating: number | null;
   /** Written on the brand's official store. */
   official: boolean;

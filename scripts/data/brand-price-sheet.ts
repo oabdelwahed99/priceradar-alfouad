@@ -124,7 +124,7 @@ export const brandPriceSheet: PriceSheet = {
       cells: {
         official: { url: "https://eparkville.com/products/bobai-sunscreen-oil-defense-fluid-spf-50?_pos=1&_sid=bf275e0f3&_ss=r" },
         alfouad: { url: "https://alfouadpharmacies.com/products/bobai-sunscreen-oil-defense-fluid-spf50-75ml", price: 375 },
-        noon: { url: "https://www.noon.com/egypt-en/sunscreen-oil-defense-fluid-spf-50/ZE4C97D6748C4F7B2ADFAZ/p/", price: 281.25 },
+        noon: { url: "https://www.noon.com/egypt-en/sunscreen-oil-defense-fluid-spf-50/ZE4C97D6748C4F7B2ADFAZ/p/", price: 375 },
         amazon: { url: "https://www.amazon.eg/dp/B0D9HKKFBY", price: 281.25 },
         dawood: { url: "https://drdawoodstore.com/products/bobai-sunscreen-oil-defense-fluid-spf-50", price: 375 },
         tay: { url: "https://taypharmacies.com/product/936012/bobai-sunscreen-oil-defense-fluid-spf50-75ml", price: 295, outOfStock: true },

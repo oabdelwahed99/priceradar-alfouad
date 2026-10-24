@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Store, Tags } from "lucide-react";
+import { StoreLabel } from "@/components/matrix/store-logo";
 import { KpiCard } from "@/components/dashboard/kpi-card";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -83,8 +84,10 @@ function OpportunityTable({
             </TableCell>
             {showBrand ? <TableCell>{row.brand}</TableCell> : null}
             <TableCell className="whitespace-normal">
-              <div className="font-medium">{row.retailerName}</div>
-              <div className="font-mono text-xs text-muted-foreground">{row.retailerDomain}</div>
+              <StoreLabel name={row.retailerName} domain={row.retailerDomain}>
+                <span className="block font-medium">{row.retailerName}</span>
+                <span className="block font-mono text-xs text-muted-foreground">{row.retailerDomain}</span>
+              </StoreLabel>
             </TableCell>
             {showPrice ? (
               <TableCell className="text-right whitespace-normal">
@@ -120,7 +123,7 @@ function StoreBriefs({ data, view }: { data: MarketOpportunitiesDTO; view: Oppor
         <Card key={`${store.brand}:${store.retailerId}`}>
           <CardHeader>
             <CardTitle className="flex flex-wrap items-center gap-2">
-              {store.name}
+              <StoreLabel name={store.name} domain={store.domain} />
               {showBrand ? (
                 <span className="rounded bg-muted px-1.5 py-0.5 text-xs font-medium text-muted-foreground">{store.brand}</span>
               ) : null}
@@ -410,8 +413,10 @@ export function OpportunitiesBoard({ data, view }: { data: MarketOpportunitiesDT
                     {data.unopenedDoors.map((door) => (
                       <TableRow key={`${door.brand}:${door.retailerId}`}>
                         <TableCell className="whitespace-normal">
-                          <div className="font-medium">{door.name}</div>
-                          <div className="font-mono text-xs text-muted-foreground">{door.domain}</div>
+                          <StoreLabel name={door.name} domain={door.domain}>
+                            <span className="block font-medium">{door.name}</span>
+                            <span className="block font-mono text-xs text-muted-foreground">{door.domain}</span>
+                          </StoreLabel>
                         </TableCell>
                         {showBrand ? <TableCell>{door.brand}</TableCell> : null}
                         <TableCell className="text-right tabular-nums">{door.catalogSize}</TableCell>
@@ -461,12 +466,22 @@ export function OpportunitiesBoard({ data, view }: { data: MarketOpportunitiesDT
           )}
 
           {data.coveredStores.length > 0 ? (
-            <p className="text-sm text-muted-foreground">
-              {`Already covered: ${data.coveredStores
-                .slice(0, 8)
-                .map((store) => (showBrand ? `${store.name} (${store.brand})` : store.name))
-                .join(", ")}${data.coveredStores.length > 8 ? `, and ${data.coveredStores.length - 8} more` : ""}. They list the available catalog and have nothing out of stock.`}
-            </p>
+            <div className="space-y-2 text-sm text-muted-foreground">
+              <p>
+                Already covered
+                {data.coveredStores.length > 12 ? `, showing 12 of ${data.coveredStores.length}` : ""}. They list the available catalog and have nothing out of stock.
+              </p>
+              <div className="flex flex-wrap gap-x-4 gap-y-2">
+                {data.coveredStores.slice(0, 12).map((store) => (
+                  <StoreLabel key={`${store.brand}:${store.retailerId}`} name={store.name} domain={store.domain} size="sm">
+                    <span>
+                      {store.name}
+                      {showBrand ? <span className="text-muted-foreground"> ({store.brand})</span> : null}
+                    </span>
+                  </StoreLabel>
+                ))}
+              </div>
+            </div>
           ) : null}
         </div>
       )}
