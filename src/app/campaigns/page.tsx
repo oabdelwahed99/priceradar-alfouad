@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Megaphone, MessageSquareText, ShieldAlert, Swords, TrendingUp } from "lucide-react";
+import { Megaphone, MessageSquareText, Lock, ShieldAlert, Swords, TrendingUp } from "lucide-react";
 import { CampaignIdeasDialog } from "@/components/campaigns/campaign-ideas-dialog";
 import { CampaignsFilters } from "@/components/campaigns/campaigns-filters";
 import { InsightCards } from "@/components/campaigns/insight-cards";
@@ -20,12 +20,22 @@ import { getCurrentWorkspaceId } from "@/lib/workspace";
 export const metadata: Metadata = { title: "Marketing Campaigns · Price Radar" };
 
 export default async function CampaignsPage(props: PageProps<"/campaigns">) {
+  const session = await getSession();
+  if (session?.role !== "admin") {
+    return (
+      <>
+        <PageHeader title="Marketing Campaigns" description="This feature is locked for your account." />
+        <EmptyState
+          icon={Lock}
+          title="Marketing Campaigns is locked"
+          description="An admin can open campaign briefs. Your account can still read customer reviews."
+        />
+      </>
+    );
+  }
+
   const query = parseSearchParamsLenient(campaignsQuerySchema, await props.searchParams);
-  const [result, session] = await Promise.all([
-    loadPageData(() => getCampaignsOverview(getCurrentWorkspaceId(), query)),
-    getSession(),
-  ]);
-  const signedIn = Boolean(session);
+  const result = await loadPageData(() => getCampaignsOverview(getCurrentWorkspaceId(), query));
 
   return (
     <>
@@ -41,7 +51,7 @@ export default async function CampaignsPage(props: PageProps<"/campaigns">) {
             <Link href="/reviews" className={buttonVariants({ variant: "outline" })}>
               <MessageSquareText /> Customer reviews
             </Link>
-            {signedIn && result.ok ? (
+            {result.ok ? (
               <CampaignIdeasDialog
                 brand={result.data.selectedBrand}
                 retailerId={query.retailerId ?? null}

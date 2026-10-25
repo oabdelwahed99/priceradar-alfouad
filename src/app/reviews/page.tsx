@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { MessageSquareText, Percent, Plus, Star, Store, ThumbsDown } from "lucide-react";
+import { Lock, MessageSquareText, Percent, Plus, Star, Store, ThumbsDown } from "lucide-react";
 import { BulkScrapeButton } from "@/components/content/bulk-scrape-button";
 import { KpiCard } from "@/components/dashboard/kpi-card";
 import { DatabaseNotice } from "@/components/layout/database-notice";
@@ -52,9 +52,18 @@ export default async function ReviewsPage(props: PageProps<"/reviews">) {
         description="Sentiment, themes and rating gaps across every store you track. Reviews are captured with page content."
         actions={
           <>
-            <Link href="/campaigns" className={buttonVariants({ variant: "outline" })}>
-              Marketing campaigns
-            </Link>
+            {isAdmin ? (
+              <Link href="/campaigns" className={buttonVariants({ variant: "outline" })}>
+                Marketing campaigns
+              </Link>
+            ) : (
+              <span
+                aria-disabled="true"
+                className={buttonVariants({ variant: "outline", className: "cursor-not-allowed opacity-60" })}
+              >
+                <Lock aria-hidden /> Marketing campaigns
+              </span>
+            )}
             {isAdmin && result.ok && result.data.productIds.length > 0 ? (
               <BulkScrapeButton mode="content" productIds={result.data.productIds} variant="default" />
             ) : null}
