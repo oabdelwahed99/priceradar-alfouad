@@ -110,7 +110,7 @@ Alerts can be marked read, dismissed or restored, and are deleted automatically 
 
 Every successful price check also reads the page's copy (or use **Capture content** to read copy only), and the product page's **Content & SEO** tab (`/products/:id?tab=content`) compares your page with competitors'. Like pricing, it is rule-based: no AI models.
 
-The **Content & SEO** page (`/content`) puts every product in one table: content score, failed and improvable checks, missing keywords, missing product facts, description length against the competitor median, and the latest competitor page rewrite. It supports search, a score filter (needs work below 50, fair 50–79, good 80+, not captured), sortable columns and pagination, and opens each product's Content & SEO tab. Demo products are excluded.
+The **Content & SEO** page (`/content`) puts every product in one table: content score, failed and improvable checks, missing keywords, missing product facts, description length against the competitor median, and the latest competitor page rewrite. It supports search, a score filter (needs work below 85, good 85+, not captured), sortable columns and pagination, and opens each product's Content & SEO tab. Demo products are excluded.
 
 **Two ways to scrape:**
 

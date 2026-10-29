@@ -1,7 +1,8 @@
 import { z } from "zod";
 
-/** Score bands: good ≥ 80, fair 50–79, needs work < 50; not captured = your page has no content yet. */
-export const CONTENT_SCORE_BANDS = ["needs_work", "fair", "good", "not_captured"] as const;
+/** Score bands: good ≥ 85, needs work < 85; not captured = your page has no content yet. */
+export const CONTENT_SCORE_THRESHOLDS = { good: 85 } as const;
+export const CONTENT_SCORE_BANDS = ["needs_work", "good", "not_captured"] as const;
 export type ContentScoreBand = (typeof CONTENT_SCORE_BANDS)[number];
 
 export const CONTENT_SORT_FIELDS = ["name", "score", "issues", "missingKeywords", "descriptionWords", "lastChange"] as const;

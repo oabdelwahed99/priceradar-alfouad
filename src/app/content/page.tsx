@@ -14,7 +14,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { getSession } from "@/lib/auth/session";
 import { loadPageData } from "@/lib/db/page-data";
 import { CONTENT_OVERVIEW_MAX_PRODUCTS, getContentOverview } from "@/lib/services/content/content-overview.service";
-import { contentOverviewQuerySchema, type ContentOverviewQuery } from "@/lib/validation/content.schema";
+import { CONTENT_SCORE_THRESHOLDS, contentOverviewQuerySchema, type ContentOverviewQuery } from "@/lib/validation/content.schema";
 import { parseSearchParamsLenient, toQueryString } from "@/lib/validation/search-params";
 import { getCurrentWorkspaceId } from "@/lib/workspace";
 
@@ -86,7 +86,7 @@ export default async function ContentOverviewPage(props: PageProps<"/content">) 
               value={result.data.summary.needsWork}
               icon={FileWarning}
               tone={result.data.summary.needsWork > 0 ? "negative" : "default"}
-              hint="Score below 50"
+              hint={`Score below ${CONTENT_SCORE_THRESHOLDS.good}`}
             />
             <KpiCard
               label="Not Captured"

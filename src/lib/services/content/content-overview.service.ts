@@ -1,6 +1,11 @@
 import { Types } from "mongoose";
 import { connectToDatabase } from "@/lib/db/mongoose";
-import type { ContentOverviewQuery, ContentScoreBand, ContentSortField } from "@/lib/validation/content.schema";
+import {
+  CONTENT_SCORE_THRESHOLDS,
+  type ContentOverviewQuery,
+  type ContentScoreBand,
+  type ContentSortField,
+} from "@/lib/validation/content.schema";
 import { Product, ProductSource, Retailer, type ProductSourceDoc, type RetailerDoc } from "@/models";
 import type { ContentOverviewDTO, ContentOverviewRowDTO, ProductContentAnalysisDTO } from "@/types/dto";
 import { escapeRegex, type LeanProduct } from "../products/product.service";
@@ -9,7 +14,6 @@ import { tryNormalizeDomain } from "../retailers/domain";
 import { getLatestContentBySource, toContentPageInput } from "./content.service";
 
 export const CONTENT_OVERVIEW_MAX_PRODUCTS = 500;
-export const CONTENT_SCORE_THRESHOLDS = { good: 80, fair: 50 } as const;
 const RECENT_CHANGE_DAYS = 30;
 
 type OverviewProduct = Pick<LeanProduct, "_id" | "name" | "brand" | "size">;
@@ -51,7 +55,6 @@ export function summarizeContentRow(product: OverviewProduct, analysis: ProductC
 export function scoreBand(row: Pick<ContentOverviewRowDTO, "ownPageCaptured" | "score">): ContentScoreBand {
   if (!row.ownPageCaptured || row.score === null) return "not_captured";
   if (row.score >= CONTENT_SCORE_THRESHOLDS.good) return "good";
-  if (row.score >= CONTENT_SCORE_THRESHOLDS.fair) return "fair";
   return "needs_work";
 }
 

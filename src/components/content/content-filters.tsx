@@ -1,12 +1,11 @@
 "use client";
 
 import { ListFilters } from "@/components/layout/list-filters";
-import type { ContentScoreBand } from "@/lib/validation/content.schema";
+import { CONTENT_SCORE_THRESHOLDS, type ContentScoreBand } from "@/lib/validation/content.schema";
 
 const BAND_OPTIONS: { value: ContentScoreBand; label: string }[] = [
-  { value: "needs_work", label: "Needs work (below 50)" },
-  { value: "fair", label: "Fair (50–79)" },
-  { value: "good", label: "Good (80+)" },
+  { value: "needs_work", label: `Needs work (below ${CONTENT_SCORE_THRESHOLDS.good})` },
+  { value: "good", label: `Good (${CONTENT_SCORE_THRESHOLDS.good}+)` },
   { value: "not_captured", label: "Not captured yet" },
 ];
 

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { SortHeader, type SortOrder } from "@/components/layout/sort-header";
 import { StoreLogo } from "@/components/matrix/store-logo";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { CONTENT_SCORE_THRESHOLDS } from "@/lib/services/content/content-overview.service";
+import { CONTENT_SCORE_THRESHOLDS } from "@/lib/validation/content.schema";
 import { cn } from "@/lib/utils";
 import type { ContentSortField } from "@/lib/validation/content.schema";
 import type { ContentOverviewRowDTO } from "@/types/dto";
@@ -20,9 +20,7 @@ function ScoreBadge({ row }: { row: ContentOverviewRowDTO }) {
   const tone =
     row.score >= CONTENT_SCORE_THRESHOLDS.good
       ? "bg-emerald-500/10 text-emerald-700 ring-emerald-500/20 dark:text-emerald-300"
-      : row.score >= CONTENT_SCORE_THRESHOLDS.fair
-        ? "bg-amber-500/10 text-amber-700 ring-amber-500/20 dark:text-amber-300"
-        : "bg-rose-500/10 text-rose-700 ring-rose-500/20 dark:text-rose-300";
+      : "bg-rose-500/10 text-rose-700 ring-rose-500/20 dark:text-rose-300";
   return (
     <span className={cn("inline-flex rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums ring-1 ring-inset", tone)}>
       {row.score}

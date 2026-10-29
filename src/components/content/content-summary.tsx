@@ -1,6 +1,7 @@
 import { CircleCheck, CircleX, Info, TriangleAlert, type LucideIcon } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { CONTENT_SCORE_THRESHOLDS } from "@/lib/validation/content.schema";
 import type { ContentCheckStatus, ProductContentAnalysisDTO } from "@/types/dto";
 
 const CHECK_STYLES: Record<ContentCheckStatus, { icon: LucideIcon; className: string; label: string }> = {
@@ -13,8 +14,7 @@ const CHECK_STYLES: Record<ContentCheckStatus, { icon: LucideIcon; className: st
 const STATUS_ORDER: Record<ContentCheckStatus, number> = { fail: 0, warn: 1, info: 2, pass: 3 };
 
 function scoreTone(score: number) {
-  if (score >= 80) return "text-emerald-600 dark:text-emerald-400";
-  if (score >= 50) return "text-amber-600 dark:text-amber-400";
+  if (score >= CONTENT_SCORE_THRESHOLDS.good) return "text-emerald-600 dark:text-emerald-400";
   return "text-rose-600 dark:text-rose-400";
 }
 

@@ -83,8 +83,8 @@ describe("summarizeContentRow", () => {
 describe("scoreBand", () => {
   it("maps scores to bands", () => {
     expect(scoreBand({ ownPageCaptured: true, score: 85 })).toBe("good");
-    expect(scoreBand({ ownPageCaptured: true, score: 50 })).toBe("fair");
-    expect(scoreBand({ ownPageCaptured: true, score: 49 })).toBe("needs_work");
+    expect(scoreBand({ ownPageCaptured: true, score: 84 })).toBe("needs_work");
+    expect(scoreBand({ ownPageCaptured: true, score: 50 })).toBe("needs_work");
     expect(scoreBand({ ownPageCaptured: false, score: null })).toBe("not_captured");
   });
 });
@@ -119,20 +119,21 @@ describe("buildContentOverview", () => {
     row({ name: "B", score: 40, lastCompetitorChange: { retailerName: "X", at: "2026-09-20T00:00:00.000Z" } }),
     row({ name: "C", score: 20, lastCompetitorChange: { retailerName: "Y", at: "2026-07-01T00:00:00.000Z" } }),
     row({ name: "D", score: null, ownPageCaptured: false }),
+    row({ name: "E", score: 80 }),
   ];
 
   it("summarizes all rows, then filters, sorts and paginates", () => {
     const overview = buildContentOverview(rows, { sort: "score", order: "asc", page: 1, pageSize: 2 }, { now });
-    expect(overview.summary).toEqual({ productsAnalyzed: 4, averageScore: 50, needsWork: 2, notCaptured: 1, competitorChanges30d: 1 });
+    expect(overview.summary).toEqual({ productsAnalyzed: 5, averageScore: 58, needsWork: 3, notCaptured: 1, competitorChanges30d: 1 });
     expect(overview.items.map((r) => r.name)).toEqual(["C", "B"]);
-    expect(overview.total).toBe(4);
-    expect(overview.totalPages).toBe(2);
+    expect(overview.total).toBe(5);
+    expect(overview.totalPages).toBe(3);
   });
 
   it("filters by score band without changing the summary", () => {
     const overview = buildContentOverview(rows, { band: "needs_work", sort: "score", order: "asc", page: 1, pageSize: 20 }, { now });
-    expect(overview.items.map((r) => r.name)).toEqual(["C", "B"]);
-    expect(overview.productIds).toEqual(["C", "B"]);
-    expect(overview.summary.productsAnalyzed).toBe(4);
+    expect(overview.items.map((r) => r.name)).toEqual(["C", "B", "E"]);
+    expect(overview.productIds).toEqual(["C", "B", "E"]);
+    expect(overview.summary.productsAnalyzed).toBe(5);
   });
 });
