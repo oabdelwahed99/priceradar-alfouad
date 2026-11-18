@@ -9,6 +9,7 @@ import {
   Grid3x3,
   LayoutDashboard,
   Lock,
+  Mail,
   Megaphone,
   MessageSquareText,
   Package,
@@ -41,6 +42,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/content", label: "Content & SEO", icon: FileSearch },
   { href: "/reviews", label: "Customer Reviews", icon: MessageSquareText },
   { href: "/campaigns", label: "Marketing Campaigns", icon: Megaphone, lock: "member" },
+  { href: "/email-reports", label: "Email Reports", icon: Mail, lock: "member" },
   { href: "/retailers", label: "Retailers", icon: Store },
   { href: "/alerts", label: "Alerts", icon: Bell },
 ];

@@ -52,6 +52,22 @@ export type AlertStatus = (typeof ALERT_STATUSES)[number];
 export const HISTORY_RANGES = ["7d", "30d", "90d", "6m", "1y"] as const;
 export type HistoryRange = (typeof HISTORY_RANGES)[number];
 
+export const EMAIL_TEAMS = ["ceo", "sales", "marketing"] as const;
+export type EmailTeam = (typeof EMAIL_TEAMS)[number];
+
+export const EMAIL_REPORT_AUDIENCES = ["ceo", "sales", "marketing", "all"] as const;
+export type EmailReportAudience = (typeof EMAIL_REPORT_AUDIENCES)[number];
+
+/** "auto" sends each recipient the report written for their own team. */
+export const EMAIL_SEND_AUDIENCES = [...EMAIL_REPORT_AUDIENCES, "auto"] as const;
+export type EmailSendAudience = (typeof EMAIL_SEND_AUDIENCES)[number];
+
+export const EMAIL_REPORT_PERIOD_DAYS = [7, 14, 30] as const;
+export type EmailReportPeriodDays = (typeof EMAIL_REPORT_PERIOD_DAYS)[number];
+
+export const EMAIL_SEND_STATUSES = ["sent", "failed"] as const;
+export type EmailSendStatus = (typeof EMAIL_SEND_STATUSES)[number];
+
 export type AnalysisStatus = "OK" | "INSUFFICIENT_DATA";
 
 /** Denormalized snapshot of the latest comparison, stored on Product for list/dashboard queries. */

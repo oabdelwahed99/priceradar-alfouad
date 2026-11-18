@@ -43,6 +43,31 @@ describe("analyzeProductPage", () => {
     expect(
       codeOf(() => analyzeProductPage(snap({ visibleText: "Please verify you are a human to continue", html: "<html></html>" }))),
     ).toBe("BLOCKED");
+    expect(
+      codeOf(() =>
+        analyzeProductPage(
+          snap({
+            title: "Amazon.eg",
+            html: '<html><body><form method="get" action="/errors/validateCaptcha"><button>Continue shopping</button></form></body></html>',
+            visibleText: "Click the button below to continue shopping Continue shopping",
+          }),
+        ),
+      ),
+    ).toBe("BLOCKED");
+  });
+
+  it("classifies soft 404 pages without a price as unavailable", () => {
+    expect(
+      codeOf(() =>
+        analyzeProductPage(
+          snap({
+            title: "Not Found - Demo Pharmacy",
+            html: "<html><body><main><h1>Oops</h1><p>We could not find that page.</p></main></body></html>",
+            visibleText: "Oops We could not find that page.",
+          }),
+        ),
+      ),
+    ).toBe("UNAVAILABLE");
   });
 
   it("classifies unavailable, empty and priceless pages", () => {

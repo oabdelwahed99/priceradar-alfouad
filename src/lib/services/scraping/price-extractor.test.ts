@@ -90,6 +90,76 @@ describe("JSON-LD extraction", () => {
     expect(jsonLdStrategy.extract(c)).toMatchObject({ price: 17, availability: "in_stock" });
   });
 
+  it("uses the offer of the variant selected in the page URL", () => {
+    const page = "https://store-a.example/products/demo-toner?variant=222";
+    const c = createExtractionContext(
+      `<html><head>${jsonLd({
+        "@type": "Product",
+        name: "Demo Toner",
+        offers: [
+          { "@type": "Offer", price: 120, priceCurrency: "EGP", availability: "OutOfStock", url: "https://store-a.example/products/demo-toner?variant=111" },
+          { "@type": "Offer", price: 221, priceCurrency: "EGP", availability: "InStock", url: "https://store-a.example/products/demo-toner?variant=222" },
+        ],
+      })}</head><body></body></html>`,
+      page,
+    );
+    expect(jsonLdStrategy.extract(c)).toMatchObject({ price: 221, availability: "in_stock" });
+  });
+
+  it("keeps JSON-LD stock state when its price is 0 and the page price is used", () => {
+    const c = ctx(
+      `<div class="product"><div class="summary"><p class="price"><span class="woocommerce-Price-amount amount"><bdi>239,00 <span class="woocommerce-Price-currencySymbol">EGP</span></bdi></span></p></div></div>`,
+      jsonLd({
+        "@type": "Product",
+        name: "Demo Gel",
+        offers: [
+          {
+            "@type": "Offer",
+            priceSpecification: [{ "@type": "UnitPriceSpecification", price: "0.00", priceCurrency: "EGP" }],
+            availability: "http://schema.org/OutOfStock",
+          },
+        ],
+      }),
+    );
+    expect(extractPrice(c)).toMatchObject({ price: 239, availability: "out_of_stock" });
+  });
+
+  it("reads Arabic out-of-stock labels", () => {
+    const c = ctx(
+      `<main><h1>Demo</h1><span class="price">239.00 EGP</span><p class="stock out-of-stock">غير متوفر في المخزون</p></main>`,
+    );
+    expect(extractPrice(c)).toMatchObject({ price: 239, availability: "out_of_stock" });
+  });
+
+  it("ignores bundle-discount prices in a frequently-bought-together block", () => {
+    const c = ctx(
+      `<div class="summary entry-summary">
+        <p class="price"><span class="woocommerce-Price-amount amount"><bdi>EGP&nbsp;369.00</bdi></span></p>
+        <div class="ecomus-product-pbt layout-2"><div class="product-summary"><div class="price">
+          <del>EGP&nbsp;369.00</del><ins>EGP&nbsp;365.31</ins>
+        </div></div></div>
+      </div>`,
+      jsonLd({ "@type": "Product", name: "Demo Lotion", offers: { "@type": "Offer", price: "369.00", priceCurrency: "EGP" } }),
+    );
+    expect(extractPrice(c)).toMatchObject({ price: 369, originalPrice: null });
+  });
+
+  it("does not take the first variant when all offers share the page URL", () => {
+    const page = "https://store-a.example/products/demo-toner";
+    const c = createExtractionContext(
+      `<html><head>${jsonLd({
+        "@type": "Product",
+        name: "Demo Toner",
+        offers: [
+          { "@type": "Offer", price: 120, priceCurrency: "EGP", availability: "OutOfStock", url: page },
+          { "@type": "Offer", price: 221, priceCurrency: "EGP", availability: "InStock", url: page },
+        ],
+      })}</head><body></body></html>`,
+      page,
+    );
+    expect(jsonLdStrategy.extract(c)).toMatchObject({ price: 221, availability: "in_stock" });
+  });
+
   it("tolerates invalid JSON-LD and falls through to the next strategy", () => {
     const c = ctx(
       `<div itemscope itemtype="https://schema.org/Product"><span itemprop="name">Demo</span>

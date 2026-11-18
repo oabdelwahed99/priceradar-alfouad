@@ -15,11 +15,11 @@ export async function requireSession(): Promise<AccountSession> {
   return session;
 }
 
-/** Capture content and price refresh are limited to the admin account. */
+/** Admin-only actions (capture content, refresh prices, email reports, campaigns). */
 export async function requireAdmin(): Promise<AccountSession> {
   const session = await requireSession();
   if (session.role !== "admin") {
-    throw new ForbiddenError("Only an admin can capture content or refresh prices.");
+    throw new ForbiddenError("Only an admin can perform this action.");
   }
   return session;
 }

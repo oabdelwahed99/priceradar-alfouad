@@ -40,7 +40,7 @@ export class GenericRetailerScraper implements RetailerScraper {
     };
   }
 
-  canHandle(): boolean {
+  canHandle(_url: string): boolean {
     return true;
   }
 
@@ -87,7 +87,7 @@ export class GenericRetailerScraper implements RetailerScraper {
     );
   }
 
-  private failure(url: string, error: unknown): ScrapeFailure {
+  protected failure(url: string, error: unknown): ScrapeFailure {
     const { code, message } = classifyScrapeError(error);
     if (code === "UNKNOWN" || code === "RENDER_FAILURE") {
       console.error(`[scraper:${this.name}] ${url}:`, error);

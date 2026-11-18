@@ -47,12 +47,31 @@ export const HISTORY_RANGE_DAYS: Record<HistoryRange, number> = {
 
 export type HistoryObservation = Pick<PriceObservationDoc, "_id" | "sourceId" | "scrapedAt" | "price">;
 
+/**
+ * In-range observations plus the latest pre-window price per source (carry-in).
+ * Carry-in lets the chart hold the last known price from the left edge of the window.
+ */
 export async function getObservationsSince(productId: string, range: HistoryRange): Promise<HistoryObservation[]> {
   await connectToDatabase();
+  const productObjectId = new Types.ObjectId(productId);
   const since = new Date(Date.now() - HISTORY_RANGE_DAYS[range] * 24 * 60 * 60 * 1000);
-  return PriceObservation.find({ productId, scrapedAt: { $gte: since } }, { sourceId: 1, scrapedAt: 1, price: 1 })
-    .sort({ scrapedAt: 1 })
-    .lean<HistoryObservation[]>();
+  const projection = { sourceId: 1, scrapedAt: 1, price: 1 } as const;
+
+  const [inRange, carryIn] = await Promise.all([
+    PriceObservation.find({ productId: productObjectId, scrapedAt: { $gte: since } }, projection)
+      .sort({ scrapedAt: 1 })
+      .lean<HistoryObservation[]>(),
+    PriceObservation.aggregate<HistoryObservation>([
+      { $match: { productId: productObjectId, scrapedAt: { $lt: since } } },
+      { $sort: { sourceId: 1, scrapedAt: -1 } },
+      { $group: { _id: "$sourceId", doc: { $first: "$$ROOT" } } },
+      { $replaceRoot: { newRoot: "$doc" } },
+      { $project: projection },
+    ]),
+  ]);
+
+  if (carryIn.length === 0) return inRange;
+  return [...carryIn, ...inRange].sort((a, b) => +new Date(a.scrapedAt) - +new Date(b.scrapedAt));
 }
 
 export async function getRecentObservations(productId: string, limit = 200): Promise<PriceObservationDoc[]> {

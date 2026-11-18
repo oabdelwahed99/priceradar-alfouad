@@ -7,6 +7,10 @@ import { SCRAPE_ERROR_MESSAGES } from "./utils";
 
 const BLOCK_TITLE_RE = /(just a moment|attention required|access denied|robot check|are you a robot|security check|pardon our interruption|request blocked)/i;
 const BLOCK_TEXT_RE = /(verify you are (a )?human|unusual traffic|enable cookies to continue|captcha|press (and|&) hold|bot detection)/i;
+/** Challenge forms that render without any of the phrases above (e.g. Amazon's "continue shopping" check). */
+const BLOCK_HTML_RE = /action="[^"]*validateCaptcha|opfcaptcha\.amazon/i;
+/** Soft 404s: HTTP 200 pages whose title says the product is gone. */
+const NOT_FOUND_TITLE_RE = /(\bnot found\b|\b404\b|no longer available|لم يتم العثور|غير موجود)/i;
 
 export interface PageSnapshot {
   url: string;
@@ -35,7 +39,11 @@ export function assertUsablePage(snapshot: PageSnapshot): void {
       challenge ? SCRAPE_ERROR_MESSAGES.BLOCKED : `The website returned an error (HTTP ${status}).`,
     );
   }
-  if (BLOCK_TITLE_RE.test(snapshot.title) || (text.length < 1500 && BLOCK_TEXT_RE.test(text))) {
+  if (
+    BLOCK_TITLE_RE.test(snapshot.title) ||
+    (text.length < 1500 && BLOCK_TEXT_RE.test(text)) ||
+    BLOCK_HTML_RE.test(snapshot.html)
+  ) {
     throw new ScrapeError("BLOCKED", SCRAPE_ERROR_MESSAGES.BLOCKED);
   }
   if (text.length < 10 && !/application\/ld\+json|itemprop=|product:price/i.test(snapshot.html)) {
@@ -52,6 +60,9 @@ export function analyzeProductPage(
   const ctx = createExtractionContext(snapshot.html, snapshot.finalUrl);
   const price = extractPrice(ctx, strategies);
   if (!price) {
+    if (NOT_FOUND_TITLE_RE.test(snapshot.title)) {
+      throw new ScrapeError("UNAVAILABLE", "The product page no longer exists (the store shows a not-found page).");
+    }
     throw new ScrapeError("PRICE_NOT_FOUND", SCRAPE_ERROR_MESSAGES.PRICE_NOT_FOUND);
   }
   const info = extractProductInfo(ctx);

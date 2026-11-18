@@ -1,3 +1,4 @@
+import { AmazonScraper } from "./retailers/amazon";
 import { GenericRetailerScraper } from "./retailers/generic.scraper";
 import type { RetailerScraper } from "./types";
 
@@ -26,4 +27,4 @@ export class ScraperRegistry {
   }
 }
 
-export const scraperRegistry = new ScraperRegistry(new GenericRetailerScraper());
+export const scraperRegistry = new ScraperRegistry(new GenericRetailerScraper()).register(new AmazonScraper());

@@ -1,5 +1,5 @@
 import type { AlertType, Availability } from "@/types";
-import { priceDifferencePercentage } from "../pricing/pricing-analysis.service";
+import { isValidPrice, priceDifferencePercentage } from "../pricing/pricing-analysis.service";
 import { roundPercentage } from "../pricing/rounding";
 
 export const ALERT_GAP_THRESHOLD = 10;
@@ -65,7 +65,11 @@ export function detectAlerts(input: AlertRuleInput): AlertDraft[] {
     const { previous, current } = change;
     const currency = current.currency ?? previous.currency ?? input.currency;
 
-    if (Math.abs(current.price - previous.price) >= PRICE_EPSILON) {
+    if (
+      isValidPrice(current.price) &&
+      isValidPrice(previous.price) &&
+      Math.abs(current.price - previous.price) >= PRICE_EPSILON
+    ) {
       const pct = roundPercentage(priceDifferencePercentage(current.price, previous.price));
       alerts.push({
         type: "PRICE_CHANGE",

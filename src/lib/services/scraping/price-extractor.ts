@@ -18,7 +18,7 @@ const ORIGINAL_PRICE_HINT = /(old|was|compare|strike|regular|original|before|lis
  * `carousel` must be its own class token: product galleries use names like `product--vertical-carousel`.
  */
 const FOREIGN_CONTAINER =
-  /(related|recommend|upsell|cross-?sell|similar|recently|also-?bought|you-?may|(?:^|\s)carousel(?:\s|$)|products?-carousel)/i;
+  /(related|recommend|upsell|cross-?sell|similar|recently|also-?bought|bought-?together|(?:^|[\s_-])(?:pbt|fbt)(?:$|[\s_-])|you-?may|(?:^|\s)carousel(?:\s|$)|products?-carousel)/i;
 /** Drawers, cards and overlays that repeat a price outside the main product buy box. */
 const AUXILIARY_PRICE = /(product-card|card-wrapper|card-product|quick-view|quick-add|compare-drawer|compare-modal|predictive-search|search-modal|menu-drawer)/i;
 
@@ -144,9 +144,12 @@ export function detectAvailabilityFromPage($: CheerioAPI): Availability {
   if (micro !== "unknown") return micro;
   const og = normalizeAvailability($('meta[property="product:availability"], meta[property="og:availability"]').attr("content"));
   if (og !== "unknown") return og;
+  // WooCommerce stock line, e.g. <p class="stock out-of-stock">.
+  if ($(".summary .stock.out-of-stock, .product .stock.out-of-stock").length > 0) return "out_of_stock";
 
   const text = spacedText($, $("main, [role=main], #main, .product, body").first()).toLowerCase();
   if (/\b(out of stock|sold out|currently unavailable|notify me when available)\b/.test(text)) return "out_of_stock";
+  if (/(غير متوفر|نفذت الكمية|نفدت الكمية|نفذ من المخزون|نفد من المخزون)/.test(text)) return "out_of_stock";
   if (/\b(add to (cart|bag|basket)|buy now|in stock)\b/.test(text)) return "in_stock";
   return "unknown";
 }
@@ -155,8 +158,21 @@ function pickBestOffer(offers: StructuredOffer[], pageUrl: string): StructuredOf
   const priced = offers.filter((o) => o.price !== null);
   if (priced.length === 0) return null;
   const normalize = (u: string) => u.replace(/[?#].*$/, "").replace(/\/$/, "");
-  const exact = priced.find((o) => o.url && normalize(new URL(o.url, pageUrl).toString()) === normalize(pageUrl));
-  if (exact) return exact;
+  const variantOf = (u: string) => {
+    try {
+      return new URL(u, pageUrl).searchParams.get("variant");
+    } catch {
+      return null;
+    }
+  };
+  const pageVariant = variantOf(pageUrl);
+  if (pageVariant) {
+    const selected = priced.find((o) => o.url && variantOf(o.url) === pageVariant);
+    if (selected) return selected;
+  }
+  // Variants of one product often share the page URL, so a path match only identifies the offer when it is unique.
+  const exact = priced.filter((o) => o.url && normalize(new URL(o.url, pageUrl).toString()) === normalize(pageUrl));
+  if (exact.length === 1) return exact[0];
   const inStock = priced.filter((o) => o.availability === "in_stock" || o.availability === "limited");
   const pool = inStock.length > 0 ? inStock : priced;
   return pool.reduce((min, o) => (o.price! < min.price! ? o : min));
@@ -452,6 +468,16 @@ function reconcileDisplayedSale(candidate: PriceCandidate, $: CheerioAPI): Price
   return candidate;
 }
 
+/**
+ * Stock state from JSON-LD when the price came from elsewhere, e.g. WooCommerce publishing
+ * `price: "0.00"` for an out-of-stock product while the page shows the real price.
+ */
+function structuredAvailability({ structuredData }: ExtractionContext): Availability | null {
+  const states = structuredData.flatMap((p) => p.offers.map((o) => o.availability)).filter((a) => a !== "unknown");
+  if (states.length === 0) return null;
+  return states.some((a) => a === "in_stock" || a === "limited") ? "in_stock" : states[0];
+}
+
 /** Default extraction order. Retailer adapters can prepend their own strategies. */
 export const DEFAULT_PRICE_STRATEGIES: PriceStrategy[] = [
   jsonLdStrategy,
@@ -483,7 +509,10 @@ export function extractPrice(
     return {
       ...reconciled,
       currency: reconciled.currency ?? detectPageCurrency(ctx.$),
-      availability: reconciled.availability !== "unknown" ? reconciled.availability : detectAvailabilityFromPage(ctx.$),
+      availability:
+        reconciled.availability !== "unknown"
+          ? reconciled.availability
+          : (structuredAvailability(ctx) ?? detectAvailabilityFromPage(ctx.$)),
     };
   }
   return null;

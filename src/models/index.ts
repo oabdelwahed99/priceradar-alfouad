@@ -6,3 +6,5 @@ export { PriceObservation, type PriceObservationDoc } from "./PriceObservation";
 export { Alert, type AlertDoc } from "./Alert";
 export { ProductContentSnapshot, type ProductContentSnapshotDoc } from "./ProductContentSnapshot";
 export { ProductReview, type ProductReviewDoc } from "./ProductReview";
+export { EmailRecipient, type EmailRecipientDoc } from "./EmailRecipient";
+export { EmailReportLog, type EmailReportLogDoc } from "./EmailReportLog";

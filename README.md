@@ -25,7 +25,7 @@ pnpm seed                      # optional: load demo data
 pnpm dev                       # http://localhost:3000
 ```
 
-Open the site, then sign in with account ID `eslam_dermaelle` and the `AUTH_PASSWORD` from your env file, or with account ID `admin` and `ADMIN_PASSWORD`. The landing page is public. Dashboard, products, and the API require that session. Only the admin account can capture content or refresh prices.
+Open the site, then sign in with account ID `eslam_dermaelle` and the `AUTH_PASSWORD` from your env file, or with account ID `admin` and `ADMIN_PASSWORD`. The landing page is public. Dashboard, products, and the API require that session. Only the admin account can capture content, refresh prices, open Marketing Campaigns, or send Email Reports.
 
 ### Environment variables
 
@@ -33,7 +33,7 @@ Open the site, then sign in with account ID `eslam_dermaelle` and the `AUTH_PASS
 | --- | --- | --- |
 | `MONGODB_URI` | yes | MongoDB connection string. Never commit it. |
 | `MONGODB_DB` | no | Database name when the URI has none (default `price_radar`). |
-| `NEXT_PUBLIC_APP_URL` | no | Public base URL, e.g. `http://localhost:3000`. |
+| `NEXT_PUBLIC_APP_URL` | no | Public base URL, e.g. `https://radar.example.com`. Used for the links in Email Reports; must be reachable by the recipients. |
 | `DEFAULT_WORKSPACE_ID` | no | Workspace product data is stored under (default `default`). |
 | `AUTH_PASSWORD` | yes, to sign in | Password for member account ID `eslam_dermaelle`. |
 | `ADMIN_PASSWORD` | yes, for the admin account | Password for account ID `admin`. Only this account can capture content or refresh prices. |
@@ -41,6 +41,9 @@ Open the site, then sign in with account ID `eslam_dermaelle` and the `AUTH_PASS
 | `SCRAPER_CONCURRENCY` | no | URLs scraped at the same time, 1–5 (default 3). |
 | `SCRAPER_TIMEOUT_MS` | no | Navigation timeout per URL (default 30000). |
 | `SCRAPER_DOMAIN_DELAY_MS` | no | Minimum delay between requests to one domain (default 1500). |
+| `BREVO_API_KEY` | no | Brevo API key for Email Reports sends. Preview works without it. |
+| `EMAIL_FROM_ADDRESS` | no | Must be a verified Brevo sender (or authenticated domain). Unverified senders are accepted by the API then rejected. |
+| `EMAIL_FROM_NAME` | no | Display name for report emails (default `Price Radar`). |
 
 `.env.local` and `.env` are loaded; neither is committed.
 
@@ -68,6 +71,7 @@ Open the site, then sign in with account ID `eslam_dermaelle` and the `AUTH_PASS
 6. **Price Matrix** (`/matrix`) shows every product as a row and every store as a column, with your store first. Each cell holds that store's latest price and its difference from your price. The lowest in-stock price in each row is highlighted, and the last column shows your position and gap to the market median. Cells show "Out of stock", "Not checked" or "Failed" when there is no current price. When the latest check failed but an earlier price exists, that price is shown with a warning icon. Demo products are hidden unless you turn them on, and **Export CSV** downloads the same grid.
 7. **Retailers** are created automatically from product URLs and can also be added, renamed or deleted (only when unused).
 8. **Alerts** are raised automatically. See the alert rules below.
+9. **Email Reports** (`/email-reports`, admin only): manage CEO / Sales / Marketing recipients, preview each role's brief, then send it through Brevo. Every brief opens with a headline, a ranked "top actions" list and key numbers with change since the last report, and every item links to its page in the platform. CEO gets pricing decisions, competitor moves and brand risk; Sales gets a store call list, restocks and unopened stores; Marketing gets content health, competitor page rewrites and review angles. The default send mode ("each recipient's own team") gives everyone the brief written for their role, with a personal greeting. Sends are manual; each recipient gets their own message. Set `NEXT_PUBLIC_APP_URL` to the public address of the app, otherwise emails contain no working links (the preview warns you).
 
 Demo products point at reserved `.example` domains and can't be refreshed.
 

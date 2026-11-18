@@ -3,6 +3,10 @@ import type {
   AlertType,
   AnalysisSnapshot,
   Availability,
+  EmailReportAudience,
+  EmailReportPeriodDays,
+  EmailSendStatus,
+  EmailTeam,
   PricePosition,
   ScrapeErrorCode,
   ScrapingStatus,
@@ -733,6 +737,255 @@ export interface CampaignIdeaDTO {
 export interface CampaignIdeasResultDTO {
   prompt: string;
   ideas: CampaignIdeaDTO[];
+}
+
+export interface EmailRecipientDTO {
+  id: string;
+  name: string;
+  email: string;
+  team: EmailTeam;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface EmailSendResultDTO {
+  email: string;
+  status: EmailSendStatus;
+  providerMessageId: string | null;
+  error: string | null;
+}
+
+export interface EmailReportLogDTO {
+  id: string;
+  subject: string;
+  audience: EmailReportAudience;
+  periodDays: EmailReportPeriodDays;
+  sentBy: string;
+  results: EmailSendResultDTO[];
+  sentCount: number;
+  failedCount: number;
+  createdAt: string;
+}
+
+export type ReportPriority = "high" | "medium" | "low";
+export type ReportStatus = "critical" | "attention" | "healthy";
+
+export interface ReportHeadlineDTO {
+  status: ReportStatus;
+  title: string;
+  /** Short plain-language bullets that open the email. */
+  summary: string[];
+}
+
+export interface ReportActionDTO {
+  id: string;
+  priority: ReportPriority;
+  title: string;
+  detail: string;
+  /** Absolute deep link into Price Radar. Null when NEXT_PUBLIC_APP_URL is not set. */
+  href: string | null;
+  ctaLabel: string;
+}
+
+export interface ReportKpiDTO {
+  id: string;
+  label: string;
+  value: number;
+  /** Formatted value, e.g. "72" or "72%". */
+  display: string;
+  /** Change since the last report sent to this audience. Null when there is no earlier report. */
+  delta: number | null;
+  /** Which direction of change is good news. */
+  goodWhen: "up" | "down" | "neutral";
+  href: string | null;
+}
+
+export interface ReportDecisionItemDTO {
+  productId: string;
+  productName: string;
+  brand: string | null;
+  ownPrice: number | null;
+  marketMedian: number | null;
+  gapPercentage: number | null;
+  suggestedPrice: number | null;
+  currency: string | null;
+  position: PricePosition | null;
+  /** lower: above the market, raise: below the market. */
+  direction: "lower" | "raise";
+  /** Suggested price minus current price. Negative means a cut. */
+  priceChange: number | null;
+  href: string | null;
+}
+
+export interface ReportAlertItemDTO {
+  id: string;
+  type: AlertType;
+  title: string;
+  message: string;
+  productId: string;
+  productName: string | null;
+  retailerName: string | null;
+  changePercentage: number | null;
+  createdAt: string;
+  href: string | null;
+}
+
+export interface ReportBrandComplianceDTO {
+  brandName: string;
+  brandSlug: string;
+  belowOfficial: number;
+  aboveOfficial: number;
+  outOfStock: number;
+  productCount: number;
+  storeCount: number;
+  href: string | null;
+}
+
+export interface ReportStoreComplianceDTO {
+  brandName: string;
+  brandSlug: string;
+  storeName: string;
+  domain: string;
+  listings: number;
+  belowOfficial: number;
+  outOfStock: number;
+  averageGapPercentage: number | null;
+  href: string | null;
+}
+
+export interface ReportStoreBriefDTO {
+  name: string;
+  domain: string;
+  brand: string;
+  catalogSize: number;
+  restockCount: number;
+  pitchCount: number;
+  coveragePercentage: number;
+  /** Product names to mention on the call. */
+  talkingPoints: string[];
+  href: string | null;
+}
+
+export interface ReportOpportunityItemDTO {
+  productName: string;
+  brand: string;
+  retailerName: string;
+  action: string;
+  tone: OpportunityTone;
+  href: string | null;
+}
+
+export interface ReportUnopenedDoorDTO {
+  name: string;
+  domain: string;
+  brand: string;
+  otherBrandListings: number;
+  href: string | null;
+}
+
+export interface ReportContentSummaryDTO {
+  productsAnalyzed: number;
+  averageScore: number | null;
+  needsWork: number;
+  notCaptured: number;
+  competitorChanges30d: number;
+  href: string | null;
+}
+
+export interface ReportContentGapDTO {
+  productId: string;
+  productName: string;
+  score: number | null;
+  issueLabels: string[];
+  topMissingKeywords: string[];
+  missingFacts: string[];
+  href: string | null;
+}
+
+export interface ReportCampaignInsightDTO {
+  title: string;
+  type: CampaignInsightTypeDTO;
+  suggestedAction: string;
+  evidence: string;
+  href: string | null;
+}
+
+export interface ReportPricingSummaryDTO {
+  totalProducts: number;
+  productsCompared: number;
+  underpriced: number;
+  overpriced: number;
+  marketAligned: number;
+  newAlerts: number;
+}
+
+export interface ReportOpportunitySummaryDTO {
+  restockCount: number;
+  newListingCount: number;
+  storesWithGaps: number;
+  unopenedProductCount: number;
+  unopenedDoorCount: number;
+}
+
+export interface ReportCampaignSummaryDTO {
+  competitorWeaknesses: number;
+  ourWeaknesses: number;
+  strengths: number;
+}
+
+export interface ExecutiveReportDTO {
+  generatedAt: string;
+  audience: EmailReportAudience;
+  periodDays: EmailReportPeriodDays;
+  appUrl: string | null;
+  note: string | null;
+  /** When the previous report for this audience was sent, used for "since last report" deltas. */
+  previousReportAt: string | null;
+
+  headline: ReportHeadlineDTO;
+  actions: ReportActionDTO[];
+  kpis: ReportKpiDTO[];
+
+  pricing: ReportPricingSummaryDTO | null;
+  opportunitySummary: ReportOpportunitySummaryDTO | null;
+  campaignSummary: ReportCampaignSummaryDTO | null;
+  contentHealth: ReportContentSummaryDTO | null;
+
+  /** Products beyond the 10% gap threshold, before the display limit. */
+  decisionsTotal: number;
+  decisionsNeeded: ReportDecisionItemDTO[];
+  priceChanges: ReportAlertItemDTO[];
+  outOfStock: ReportAlertItemDTO[];
+  contentChanges: ReportAlertItemDTO[];
+  brandCompliance: ReportBrandComplianceDTO[];
+  storeCompliance: ReportStoreComplianceDTO[];
+  storeBriefs: ReportStoreBriefDTO[];
+  restocks: ReportOpportunityItemDTO[];
+  newListings: ReportOpportunityItemDTO[];
+  unopenedDoors: ReportUnopenedDoorDTO[];
+  contentGaps: ReportContentGapDTO[];
+  campaignInsights: ReportCampaignInsightDTO[];
+}
+
+export interface EmailPreviewDTO {
+  subject: string;
+  html: string;
+  text: string;
+  /** Problems that make the real email less useful, e.g. links disabled. */
+  warnings: string[];
+}
+
+export interface EmailSendGroupDTO {
+  audience: EmailReportAudience;
+  subject: string;
+  recipientCount: number;
+  logId: string;
+}
+
+export interface EmailSendResponseDTO {
+  groups: EmailSendGroupDTO[];
+  results: EmailSendResultDTO[];
 }
 
 export type { PricePosition };
